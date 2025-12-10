@@ -1,0 +1,359 @@
+project/
+├── prisma/
+│   ├── schema.prisma              # Database schema
+│   ├── migrations/                # Migration files
+│   └── seeds/
+│       ├── countries.seed.ts      # African countries data
+│       ├── networks.seed.ts       # Mobile networks data
+│       ├── pricing.seed.ts        # Pricing data for Africa
+│       └── development.seed.ts    # Development data
+├── src/
+│   ├── app/
+│   │   ├── app.ts                 # Main app configuration
+│   │   ├── server.ts              # Server bootstrap
+│   │   ├── routes/
+│   │   │   ├── v1/               # API version 1
+│   │   │   │   ├── index.ts
+│   │   │   │   └── health.ts
+│   │   │   └── index.ts
+│   │   ├── middleware/
+│   │   │   ├── auth.middleware.ts # API key authentication
+│   │   │   ├── rate-limit.middleware.ts # Rate limiting per API key
+│   │   │   ├── validation.middleware.ts # Request validation
+│   │   │   ├── billing.middleware.ts # Check credit balance
+│   │   │   ├── logging.middleware.ts # Request logging
+│   │   │   ├── geo.middleware.ts # Geolocation based routing
+│   │   │   └── index.ts
+│   │   └── plugins/
+│   │       ├── cors.plugin.ts
+│   │       ├── logger.plugin.ts
+│   │       ├── swagger.plugin.ts # API documentation
+│   │       └── index.ts
+│   ├── modules/
+│   │   ├── auth/                  # API Key & Authentication
+│   │   │   ├── controllers/
+│   │   │   │   ├── api-key.controller.ts
+│   │   │   │   └── auth.controller.ts
+│   │   │   ├── services/
+│   │   │   │   ├── api-key.service.ts
+│   │   │   │   └── auth.service.ts
+│   │   │   ├── schemas/
+│   │   │   │   ├── api-key.schema.ts
+│   │   │   │   └── auth.schema.ts
+│   │   │   ├── routes/
+│   │   │   │   └── auth.routes.ts
+│   │   │   └── types/
+│   │   │       └── auth.types.ts
+│   │   ├── sms/                   # SMS Service (Provider-based)
+│   │   │   ├── controllers/
+│   │   │   │   ├── sms.controller.ts
+│   │   │   │   └── bulk-sms.controller.ts
+│   │   │   ├── services/
+│   │   │   │   ├── sms.service.ts
+│   │   │   │   ├── sms-router.service.ts # Routes to best provider
+│   │   │   │   ├── sms-validation.service.ts
+│   │   │   │   └── sms-analytics.service.ts
+│   │   │   ├── schemas/
+│   │   │   │   ├── send-sms.schema.ts
+│   │   │   │   ├── bulk-sms.schema.ts
+│   │   │   │   └── sms-status.schema.ts
+│   │   │   ├── routes/
+│   │   │   │   └── sms.routes.ts
+│   │   │   └── types/
+│   │   │       └── sms.types.ts
+│   │   ├── voice/                 # Voice Service (Provider-based)
+│   │   │   ├── controllers/
+│   │   │   │   └── voice.controller.ts
+│   │   │   ├── services/
+│   │   │   │   ├── voice.service.ts
+│   │   │   │   ├── ivr.service.ts # IVR builder
+│   │   │   │   └── call-routing.service.ts
+│   │   │   ├── schemas/
+│   │   │   │   ├── make-call.schema.ts
+│   │   │   │   └── ivr.schema.ts
+│   │   │   ├── routes/
+│   │   │   │   └── voice.routes.ts
+│   │   │   └── types/
+│   │   │       └── voice.types.ts
+│   │   ├── email/                 # Email Service (Self-built)
+│   │   │   ├── controllers/
+│   │   │   │   └── email.controller.ts
+│   │   │   ├── services/
+│   │   │   │   ├── email.service.ts
+│   │   │   │   ├── smtp.service.ts # Direct SMTP
+│   │   │   │   └── email-validation.service.ts
+│   │   │   ├── schemas/
+│   │   │   │   ├── send-email.schema.ts
+│   │   │   │   └── bulk-email.schema.ts
+│   │   │   ├── routes/
+│   │   │   │   └── email.routes.ts
+│   │   │   └── types/
+│   │   │       └── email.types.ts
+│   │   ├── lookup/                # Lookup Service (Self-built for Africa)
+│   │   │   ├── controllers/
+│   │   │   │   ├── number-lookup.controller.ts
+│   │   │   │   ├── carrier-lookup.controller.ts
+│   │   │   │   └── mnp-lookup.controller.ts # Mobile Number Portability
+│   │   │   ├── services/
+│   │   │   │   ├── number-lookup.service.ts
+│   │   │   │   ├── carrier-lookup.service.ts
+│   │   │   │   ├── mnp-lookup.service.ts
+│   │   │   │   └── lookup-cache.service.ts
+│   │   │   ├── schemas/
+│   │   │   │   ├── lookup.schema.ts
+│   │   │   │   └── validate.schema.ts
+│   │   │   ├── routes/
+│   │   │   │   └── lookup.routes.ts
+│   │   │   └── data/
+│   │   │       ├── countries.ts   # African countries data
+│   │   │       ├── networks.ts    # Mobile networks in Africa
+│   │   │       └── prefixes.ts    # Phone prefixes for Africa
+│   │   ├── verify/                # Verification Service (Self-built)
+│   │   │   ├── controllers/
+│   │   │   │   └── verify.controller.ts
+│   │   │   ├── services/
+│   │   │   │   ├── otp.service.ts
+│   │   │   │   ├── verification.service.ts
+│   │   │   │   └── verification-storage.service.ts
+│   │   │   ├── schemas/
+│   │   │   │   ├── send-otp.schema.ts
+│   │   │   │   └── verify-otp.schema.ts
+│   │   │   ├── routes/
+│   │   │   │   └── verify.routes.ts
+│   │   │   └── types/
+│   │   │       └── verify.types.ts
+│   │   ├── push/                  # Push Notification Service (Self-built)
+│   │   │   ├── controllers/
+│   │   │   │   └── push.controller.ts
+│   │   │   ├── services/
+│   │   │   │   ├── push.service.ts
+│   │   │   │   ├── web-push.service.ts
+│   │   │   │   └── mobile-push.service.ts
+│   │   │   ├── schemas/
+│   │   │   │   └── send-push.schema.ts
+│   │   │   ├── routes/
+│   │   │   │   └── push.routes.ts
+│   │   │   └── types/
+│   │   │       └── push.types.ts
+│   │   ├── whatsapp/              # WhatsApp Service (Hybrid)
+│   │   │   ├── controllers/
+│   │   │   │   └── whatsapp.controller.ts
+│   │   │   ├── services/
+│   │   │   │   ├── whatsapp.service.ts
+│   │   │   │   ├── whatsapp-api.service.ts # Self-built
+│   │   │   │   └── whatsapp-business.service.ts # Provider-based
+│   │   │   ├── schemas/
+│   │   │   │   └── send-whatsapp.schema.ts
+│   │   │   ├── routes/
+│   │   │   │   └── whatsapp.routes.ts
+│   │   │   └── types/
+│   │   │       └── whatsapp.types.ts
+│   │   └── billing/               # Billing & Pricing
+│   │       ├── controllers/
+│   │       │   ├── credit.controller.ts
+│   │       │   ├── payment.controller.ts
+│   │       │   └── invoice.controller.ts
+│   │       ├── services/
+│   │       │   ├── billing.service.ts
+│   │       │   ├── credit.service.ts
+│   │       │   ├── payment.service.ts
+│   │       │   ├── pricing.service.ts # Africa-specific pricing
+│   │       │   ├── invoice.service.ts
+│   │       │   └── usage-tracker.service.ts
+│   │       ├── schemas/
+│   │       │   ├── credit.schema.ts
+│   │       │   ├── payment.schema.ts
+│   │       │   └── invoice.schema.ts
+│   │       ├── routes/
+│   │       │   └── billing.routes.ts
+│   │       └── data/
+│   │           ├── pricing.ts     # Africa country pricing
+│   │           └── currencies.ts  # African currencies
+│   ├── core/
+│   │   ├── config/
+│   │   │   ├── index.ts
+│   │   │   ├── env.ts
+│   │   │   ├── database.ts
+│   │   │   ├── africa.ts          # Africa-specific config
+│   │   │   ├── providers.ts       # Provider configs
+│   │   │   ├── pricing.ts         # Pricing config
+│   │   │   ├── rate-limit.ts      # Rate limits per service
+│   │   │   └── security.ts
+│   │   ├── database/
+│   │   │   ├── prisma.client.ts
+│   │   │   └── repositories/
+│   │   │       ├── base.repository.ts
+│   │   │       ├── api-key.repository.ts
+│   │   │       ├── sms.repository.ts
+│   │   │       ├── voice.repository.ts
+│   │   │       ├── email.repository.ts
+│   │   │       ├── billing.repository.ts
+│   │   │       └── usage.repository.ts
+│   │   ├── providers/             # External providers (SMS/Voice)
+│   │   │   ├── sms/
+│   │   │   │   ├── base-sms.provider.ts
+│   │   │   │   ├── africastalking.provider.ts
+│   │   │   │   ├── telecel.provider.ts
+│   │   │   │   ├── mtn.provider.ts
+│   │   │   │   ├── vodacom.provider.ts
+│   │   │   │   ├── orange.provider.ts
+│   │   │   │   ├── provider.router.ts # Routes to best African provider
+│   │   │   │   └── index.ts
+│   │   │   ├── voice/
+│   │   │   │   ├── base-voice.provider.ts
+│   │   │   │   ├── africastalking-voice.provider.ts
+│   │   │   │   ├── twilio-voice.provider.ts
+│   │   │   │   └── index.ts
+│   │   │   └── payment/           # Payment providers for Africa
+│   │   │       ├── base-payment.provider.ts
+│   │   │       ├── stripe.provider.ts
+│   │   │       ├── paystack.provider.ts
+│   │   │       ├── flutterwave.provider.ts
+│   │   │       └── index.ts
+│   │   ├── services/              # Self-built core services
+│   │   │   ├── smtp/
+│   │   │   │   ├── smtp.client.ts
+│   │   │   │   ├── smtp.manager.ts
+│   │   │   │   └── email-builder.ts
+│   │   │   ├── cache/
+│   │   │   │   ├── redis.client.ts
+│   │   │   │   ├── cache.manager.ts
+│   │   │   │   └── memory-cache.ts
+│   │   │   ├── queue/
+│   │   │   │   ├── queue.manager.ts
+│   │   │   │   ├── job.processor.ts
+│   │   │   │   └── email-queue.ts
+│   │   │   ├── storage/
+│   │   │   │   ├── s3.storage.ts
+│   │   │   │   └── local.storage.ts
+│   │   │   └── geolocation/       # Africa geolocation
+│   │   │       ├── country.helper.ts
+│   │   │       ├── network.helper.ts
+│   │   │       └── phone.helper.ts
+│   │   ├── utils/
+│   │   │   ├── logger.ts
+│   │   │   ├── api-response.ts
+│   │   │   ├── error-handler.ts
+│   │   │   ├── validation.ts
+│   │   │   ├── phone.ts           # African phone utils
+│   │   │   ├── email.ts
+│   │   │   ├── crypto.ts
+│   │   │   ├── pagination.ts
+│   │   │   └── africa-utils.ts    # Africa-specific utilities
+│   │   ├── types/
+│   │   │   ├── api.types.ts
+│   │   │   ├── billing.types.ts
+│   │   │   ├── africa.types.ts    # Africa-specific types
+│   │   │   ├── provider.types.ts
+│   │   │   └── index.ts
+│   │   └── constants/
+│   │       ├── error-codes.ts
+│   │       ├── http-status.ts
+│   │       ├── african-countries.ts
+│   │       ├── african-networks.ts
+│   │       ├── pricing-tiers.ts
+│   │       └── index.ts
+│   ├── templates/                 # Email & SMS templates
+│   │   ├── emails/
+│   │   │   ├── welcome.hbs
+│   │   │   ├── verification.hbs
+│   │   │   ├── invoice.hbs
+│   │   │   ├── otp.hbs
+│   │   │   └── notification.hbs
+│   │   ├── sms/
+│   │   │   ├── otp.txt
+│   │   │   ├── alert.txt
+│   │   │   ├── welcome.txt
+│   │   │   └── notification.txt
+│   │   └── compile.ts
+│   └── webhooks/                  # Webhooks for services
+│       ├── handlers/
+│       │   ├── sms-webhook.handler.ts
+│       │   ├── voice-webhook.handler.ts
+│       │   ├── payment-webhook.handler.ts
+│       │   └── delivery-receipt.handler.ts
+│       ├── routes/
+│       │   └── webhooks.routes.ts
+│       └── utils/
+│           └── signature.ts
+├── tests/
+│   ├── unit/
+│   │   ├── modules/
+│   │   │   ├── sms/
+│   │   │   │   └── sms.service.test.ts
+│   │   │   ├── lookup/
+│   │   │   │   └── lookup.service.test.ts
+│   │   │   └── billing/
+│   │   │       └── billing.service.test.ts
+│   │   ├── core/
+│   │   │   ├── providers/
+│   │   │   │   └── sms-provider.test.ts
+│   │   │   └── services/
+│   │   │       └── smtp.service.test.ts
+│   │   └── utils/
+│   │       └── phone.test.ts
+│   ├── integration/
+│   │   ├── api/
+│   │   │   ├── sms-api.test.ts
+│   │   │   ├── lookup-api.test.ts
+│   │   │   └── billing-api.test.ts
+│   │   └── providers/
+│   │       └── sms-provider.test.ts
+│   ├── e2e/
+│   │   ├── api-flow.test.ts
+│   │   ├── billing-flow.test.ts
+│   │   └── webhook-flow.test.ts
+│   └── fixtures/
+│       ├── africa-data.fixture.ts
+│       └── api-keys.fixture.ts
+├── public/
+│   ├── index.html
+│   ├── favicon.ico
+│   └── docs/
+│       └── api-v1.html           # Public API documentation
+├── docs/
+│   ├── api/
+│   │   ├── v1/
+│   │   │   ├── overview.md
+│   │   │   ├── authentication.md
+│   │   │   ├── sms-api.md
+│   │   │   ├── voice-api.md
+│   │   │   ├── lookup-api.md      # Africa phone lookup
+│   │   │   ├── email-api.md
+│   │   │   ├── billing-api.md
+│   │   │   └── webhooks.md
+│   │   └── africa-coverage.md     # Africa coverage guide
+│   └── examples/
+│       ├── curl/
+│       │   ├── send-sms.sh
+│       │   ├── lookup-number.sh
+│       │   └── send-email.sh
+│       ├── nodejs/
+│       │   └── client.js
+│       └── python/
+│           └── client.py
+├── scripts/
+│   ├── database/
+│   │   ├── seed-africa.ts         # Seed African data
+│   │   ├── backup.ts
+│   │   └── migrate.ts
+│   ├── providers/
+│   │   ├── test-sms-provider.ts
+│   │   └── test-voice-provider.ts
+│   └── monitoring/
+│       ├── health-check.ts
+│       └── usage-report.ts
+├── .env
+├── .env.example
+├── .env.africa                    # Africa-specific config
+├── .gitignore
+├── bun.lockb
+├── package.json
+├── tsconfig.json
+├── docker-compose.yml
+├── Dockerfile
+├── Makefile
+├── README.md
+├── CONTRIBUTING.md
+├── API_CHANGELOG.md
+└── ROADMAP.md
