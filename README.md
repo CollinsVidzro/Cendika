@@ -6,10 +6,44 @@
 [![Bun](https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white)](https://bun.sh/)
 [![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![GitHub stars](https://img.shields.io/github/stars/CollinsVidzro/cendika?style=for-the-badge&logo=github)](https://github.com/CollinsVidzro/cendika/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/CollinsVidzro/cendika?style=for-the-badge&logo=github)](https://github.com/CollinsVidzro/cendika/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/CollinsVidzro/cendika?style=for-the-badge&logo=github)](https://github.com/CollinsVidzro/cendika/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/CollinsVidzro/cendika?style=for-the-badge&logo=github)](https://github.com/CollinsVidzro/cendika/pulls)
+[![Discord](https://img.shields.io/discord/your-server-id?style=for-the-badge&logo=discord)](https://discord.gg/your-invite)
+[![Twitter Follow](https://img.shields.io/twitter/follow/cendika_api?style=for-the-badge&logo=twitter)](https://twitter.com/cendika_api)
 
 ## 🚀 Africa-First Communication API Platform
 
 Cendika is an **open-source, production-ready communication API platform** built following [Sendexa](https://sendexa.co) documentation and standards. Designed with Africa in mind, it provides unified APIs for SMS, Voice, Email, WhatsApp, Push Notifications, and Phone Lookup services with African-specific optimizations.
+
+
+## **Sponsor/Donor Appeal:**
+
+```markdown
+## 💝 Support Cendika
+
+Cendika is open source and free forever. Your support helps:
+
+### For Donors:
+- **$10/month**: Supports hosting for documentation
+- **$50/month**: Covers CI/CD and testing infrastructure
+- **$100/month**: Funds African developer internships
+- **$500/month**: Sponsors new African country coverage
+
+### For Companies:
+- **Sponsor a Feature**: Fund specific African integrations
+- **Enterprise Support**: Get priority support and custom features
+- **Become a Partner**: Joint go-to-market for African markets
+
+**Ways to support:**
+- GitHub Sponsors
+- Open Collective
+- Direct partnerships
+- Resource contributions (servers, SMS credits)
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-Cendika-blue?style=for-the-badge&logo=github)](https://github.com/sponsors/CollinsVidzro)
+
 
 ### ✨ Features
 
