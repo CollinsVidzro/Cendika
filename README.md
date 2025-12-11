@@ -53,15 +53,15 @@ Cendika is an **open-source, production-ready communication API platform** built
 │    Authentication  │  Rate Limiting  │  Validation  │
 ├─────────────────────────────────────────────────────┤
 │              Service Layer (Modules)                │
-│  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐      │
-│  │ SMS │  │Voice│  │Email│  │Push │  │Whats│      │
-│  └─────┘  └─────┘  └─────┘  └─────┘  └─────┘      │
+│  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐        │
+│  │ SMS │  │Voice│  │Email│  │Push │  │Whats│        │
+│  └─────┘  └─────┘  └─────┘  └─────┘  └─────┘        │
 ├─────────────────────────────────────────────────────┤
 │            Provider Layer (Africa-First)            │
-│  ┌─────────┐  ┌─────────┐  ┌──────────────┐       │
-│  │African  │  │Payment  │  │Local SMTP    │       │
-│  │SMS      │  │Gateways │  │Services      │       │
-│  └─────────┘  └─────────┘  └──────────────┘       │
+│  ┌─────────┐  ┌─────────┐  ┌──────────────┐         │
+│  │African  │  │Payment  │  │Local SMTP    │         │
+│  │SMS      │  │Gateways │  │Services      │         │
+│  └─────────┘  └─────────┘  └──────────────┘         │
 ├─────────────────────────────────────────────────────┤
 │              Data Layer (Prisma/PostgreSQL)         │
 └─────────────────────────────────────────────────────┘
@@ -213,13 +213,11 @@ Country-specific pricing in local currencies (GHS, NGN, KES, ZAR, etc.) with vol
 ## 🔌 Integrations
 
 ### SMS Providers
-- Africa's Talking
 - Telecel
 - MTN
 - Vodacom
 - Orange
-- Twilio (international)
-- Vonage
+
 
 ### Payment Gateways
 - Paystack (Nigeria, Ghana, Kenya, South Africa)
@@ -358,10 +356,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Documentation**: [docs.cendika.dev](https://docs.cendika.dev)
-- **Issues**: [GitHub Issues](https://github.com/your-org/cendika/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/cendika/discussions)
-- **Email**: support@cendika.dev
+- **Documentation**: [docs.cendika.dev](https://docs.sendexa.co)
+- **Issues**: [GitHub Issues](https://github.com/CollinsVidzro/cendika/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/CollinsVidzro/cendika/discussions)
+- **Email**: cendika@sendexa.co
 
 ## 🚧 Roadmap
 
@@ -371,5 +369,5 @@ See our [ROADMAP.md](ROADMAP.md) for upcoming features and improvements.
 
 **Built with ❤️ for Africa by the open-source community**
 
-[![Star on GitHub](https://img.shields.io/github/stars/your-org/cendika.svg?style=social)](https://github.com/your-org/cendika)
+[![Star on GitHub](https://img.shields.io/github/stars/CollinsVidzro/cendika.svg?style=social)](https://github.com/CollinsVidzro/cendika)
 [![Twitter Follow](https://img.shields.io/twitter/follow/cendika_api.svg?style=social)](https://twitter.com/cendika_api)

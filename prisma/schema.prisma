@@ -42,6 +42,17 @@ enum SenderIdStatus {
   UNDER_REVIEW
 }
 
+enum ServiceType {
+  SMS
+  OTP
+  EMAIL
+  VOICE
+  WHATSAPP
+  PUSH
+  LOOKUP
+  CHAT
+}
+
 enum SenderIdType {
   SHARED
   DEDICATED
@@ -82,6 +93,12 @@ enum TransactionType {
   REFUND
   BONUS
   CONVERSION
+  EMAIL_DEBIT // Add this
+  VOICE_DEBIT // Add this
+  WHATSAPP_DEBIT // Add this  
+  PUSH_DEBIT // Add this
+  LOOKUP_DEBIT // Add this
+  CHAT_DEBIT // Add this
 }
 
 enum TeamRole {
@@ -119,7 +136,6 @@ enum PaymentMethod {
   MOBILE_MONEY
   CARD
   BANK_TRANSFER
-  PAYPAL
 }
 
 enum ProviderType {
@@ -293,73 +309,73 @@ enum MessageDeliveryStatus {
 // ============================================
 
 model User {
-  id              String        @id @default(cuid())
-  email           String        @unique
-  emailVerified   Boolean       @default(false)
+  id              String    @id @default(cuid())
+  email           String    @unique
+  emailVerified   Boolean   @default(false)
   emailVerifiedAt DateTime?
   phone           String?
-  phoneVerified   Boolean       @default(false)
+  phoneVerified   Boolean   @default(false)
   passwordHash    String?
-  
+
   // OAuth
-  googleId        String? @unique
-  githubId        String? @unique
-  facebookId      String? @unique
-  
+  googleId   String? @unique
+  githubId   String? @unique
+  facebookId String? @unique
+
   // Profile
-  firstName       String?
-  lastName        String?
-  avatarUrl       String?
-  timezone        String   @default("Africa/Accra")
-  language        String   @default("en")
-  
+  firstName String?
+  lastName  String?
+  avatarUrl String?
+  timezone  String  @default("Africa/Accra")
+  language  String  @default("en")
+
   // Security
-  twoFactorEnabled    Boolean   @default(false)
-  twoFactorSecret     String?
-  backupCodes         String[]
-  lastPasswordChange  DateTime?
-  
+  twoFactorEnabled   Boolean   @default(false)
+  twoFactorSecret    String?
+  backupCodes        String[]
+  lastPasswordChange DateTime?
+
   // Activity
   lastLoginAt         DateTime?
   lastActiveAt        DateTime?
-  failedLoginAttempts Int @default(0)
+  failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
-  
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
-  accounts        Account[]
-  sessions        Session[]
-  notifications   Notification[]
-  teamMembers     TeamMember[]
-  pushDevices     PushDevice[]
-  
+  accounts      Account[]
+  sessions      Session[]
+  notifications Notification[]
+  teamMembers   TeamMember[]
+  pushDevices   PushDevice[]
+  chatAgents    ChatAgent[]
+  pushMessages  PushMessage[]
+
   @@index([email])
   @@index([phone])
   @@map("users")
-  chatAgents ChatAgent[]
-  pushMessages PushMessage[]
 }
 
 model Session {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  token         String   @unique
-  refreshToken  String   @unique
-  ipAddress     String?
-  userAgent     String?
-  country       String?
-  city          String?
-  
-  isActive      Boolean   @default(true)
-  expiresAt     DateTime
-  createdAt     DateTime  @default(now())
-  lastActiveAt  DateTime @updatedAt
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token        String  @unique
+  refreshToken String  @unique
+  ipAddress    String?
+  userAgent    String?
+  country      String?
+  city         String?
+
+  isActive     Boolean  @default(true)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastActiveAt DateTime @updatedAt
+
   @@index([userId])
   @@index([token])
   @@index([expiresAt])
@@ -374,154 +390,166 @@ model Account {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   // Account Info
   type        AccountType
-  isPersonal  Boolean @default(true)
+  isPersonal  Boolean     @default(true)
   name        String
-  slug        String? @unique
+  slug        String?     @unique
   description String?
-  
+
   // Status
   status             AccountStatus      @default(PENDING_VERIFICATION)
   verificationStatus VerificationStatus @default(PENDING)
-  
+
   // Contact
   contactEmail String?
   contactPhone String?
-  
+
   // Location
-  country      String  @default("GH")
-  countryCode  String  @default("+233")
-  timezone     String  @default("Africa/Accra")
-  currency     String  @default("GHS")
-  
+  country     String @default("GH")
+  countryCode String @default("+233")
+  timezone    String @default("Africa/Accra")
+  currency    String @default("GHS")
+
   // Personal Account Fields
-  personalIdNumber  String?
-  dateOfBirth       DateTime?
-  
+  personalIdNumber String?
+  dateOfBirth      DateTime?
+
   // Business Account Fields
-  businessName          String?
-  businessType          BusinessType?
-  businessIndustry      BusinessIndustry?
-  registrationNumber    String? @unique
-  registrationDate      DateTime?
-  taxId                 String? @unique
-  taxCertificateUrl     String?
-  
-  businessContactName   String?
-  businessContactEmail  String?
-  businessContactPhone  String?
-  businessContactRole   String?
-  
-  businessAddress       Json?
-  businessCity          String?
-  businessRegion        String?
-  businessCountry       String?
-  businessPostalCode    String?
-  
-  website               String?
-  yearFounded           Int?
-  employeeCount         String?
-  annualRevenue         String?
-  
-  registrationDocumentUrl   String?
-  businessLicenseUrl        String?
+  businessName       String?
+  businessType       BusinessType?
+  businessIndustry   BusinessIndustry?
+  registrationNumber String?           @unique
+  registrationDate   DateTime?
+  taxId              String?           @unique
+  taxCertificateUrl  String?
+
+  businessContactName  String?
+  businessContactEmail String?
+  businessContactPhone String?
+  businessContactRole  String?
+
+  businessAddress    Json?
+  businessCity       String?
+  businessRegion     String?
+  businessCountry    String?
+  businessPostalCode String?
+
+  website       String?
+  yearFounded   Int?
+  employeeCount String?
+  annualRevenue String?
+
+  registrationDocumentUrl       String?
+  businessLicenseUrl            String?
   certificateOfIncorporationUrl String?
-  directors                 Json?
-  shareholders              Json?
-  
+  directors                     Json?
+  shareholders                  Json?
+
   // Balance System
-  walletBalance  Float @default(0)
-  creditBalance  Float @default(0)
-  lifetimeSpent  Float @default(0)
-  
+  walletBalance Float @default(0)
+  creditBalance Float @default(0)
+  lifetimeSpent Float @default(0)
+
   // Settings
-  autoRechargeEnabled Boolean @default(false)
-  autoRechargeAmount  Float?
-  lowBalanceThreshold Float   @default(10)
+  autoRechargeEnabled  Boolean @default(false)
+  autoRechargeAmount   Float?
+  lowBalanceThreshold  Float   @default(10)
   autoConvertToCredits Boolean @default(false)
   customConversionRate Float?
-  
+
   // Limits
-  dailySmsLimit         Int?
-  monthlySmsLimit       Int?
-  dailySpendLimit       Float?
-  monthlySpendLimit     Float?
-  apiRateLimit          Int    @default(100)
-  maxTeamMembers        Int?
-  
+  dailySmsLimit     Int?
+  monthlySmsLimit   Int?
+  dailySpendLimit   Float?
+  monthlySpendLimit Float?
+  apiRateLimit      Int    @default(100)
+  maxTeamMembers    Int?
+
   // Features & Permissions
-  features             Json?
-  permissions          Json?
-  
+  features    Json?
+  permissions Json?
+
   allowMultipleSenderIds Boolean @default(true)
-  allowCampaigns        Boolean @default(true)
-  allowAPIKeys          Boolean @default(true)
-  allowTeamMembers      Boolean @default(true)
-  allowWebhooks         Boolean @default(true)
-  
+  allowCampaigns         Boolean @default(true)
+  allowAPIKeys           Boolean @default(true)
+  allowTeamMembers       Boolean @default(true)
+  allowWebhooks          Boolean @default(true)
+
   // Verification & Compliance
-  documentsSubmitted    Int     @default(0)
-  documentsApproved     Int     @default(0)
-  kycStatus            String  @default("pending")
-  amlStatus           String  @default("pending")
-  complianceNotes      String?
-  
-  verifiedAt     DateTime?
-  verifiedBy     String?
-  kycVerifiedAt  DateTime?
-  amlVerifiedAt  DateTime?
-  
+  documentsSubmitted Int     @default(0)
+  documentsApproved  Int     @default(0)
+  kycStatus          String  @default("pending")
+  amlStatus          String  @default("pending")
+  complianceNotes    String?
+
+  verifiedAt    DateTime?
+  verifiedBy    String?
+  kycVerifiedAt DateTime?
+  amlVerifiedAt DateTime?
+
   // Referral
-  referralCode   String? @unique
-  referredBy     String?
-  referralCount  Int     @default(0)
-  referralEarnings Float @default(0)
-  
+  referralCode     String? @unique
+  referredBy       String?
+  referralCount    Int     @default(0)
+  referralEarnings Float   @default(0)
+
   // Subscription
-  subscriptionPlan      String? @default("free")
-  subscriptionStatus    String? @default("active")
+  subscriptionPlan      String?   @default("free")
+  subscriptionStatus    String?   @default("active")
   subscriptionStartedAt DateTime?
   subscriptionEndsAt    DateTime?
-  trialEndsAt          DateTime?
-  
-  billingEmail          String?
-  billingPhone          String?
-  
+  trialEndsAt           DateTime?
+
+  billingEmail String?
+  billingPhone String?
+
   // Timestamps
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   lastActiveAt  DateTime?
   lastBilledAt  DateTime?
   nextBillingAt DateTime?
-  
+
   // Relations
-  apiKeys            ApiKey[]
-  senderIds          SenderId[]
-  contacts           Contact[]
-  contactGroups      ContactGroup[]
-  templates          Template[]
-  campaigns          Campaign[]
-  transactions       Transaction[]
-  webhooks           Webhook[]
-  teamMembers        TeamMember[]
-  auditLogs          AuditLog[]
-  inboundMessages    InboundMessage[]
-  otpMessages        OtpMessage[]
-  messages           Message[]
-  invoices           Invoice[]
-  
+  apiKeys         ApiKey[]
+  senderIds       SenderId[]
+  contacts        Contact[]
+  contactGroups   ContactGroup[]
+  templates       Template[]
+  campaigns       Campaign[]
+  transactions    Transaction[]
+  webhooks        Webhook[]
+  teamMembers     TeamMember[]
+  auditLogs       AuditLog[]
+  inboundMessages InboundMessage[]
+  otpMessages     OtpMessage[]
+  messages        Message[]
+  invoices        Invoice[]
+
   // New Features
-  chatWidgets        ChatWidget[]
-  chatSessions       ChatSession[]
-  emailMessages      EmailMessage[]
-  voiceCalls         VoiceCall[]
-  pushMessages       PushMessage[]
-  whatsappMessages   WhatsAppMessage[]
-  smsConversations   SmsConversation[]
-  accountLimits      AccountLimits?
-  
+  chatWidgets             ChatWidget[]
+  chatSessions            ChatSession[]
+  emailMessages           EmailMessage[]
+  voiceCalls              VoiceCall[]
+  pushMessages            PushMessage[]
+  whatsappMessages        WhatsAppMessage[]
+  smsConversations        SmsConversation[]
+  accountLimits           AccountLimits?
+  smsConversationMessages SmsConversationMessage[]
+  smsConversationNotes    SmsConversationNote[]
+  chatMessages            ChatMessage[]
+  chatNotes               ChatNote[]
+  chatAgents              ChatAgent[]
+  chatQueues              ChatQueue[]
+  conversationBridges     ConversationBridge[]
+  emailTemplates          EmailTemplate[]
+  ivrTemplates            IvrTemplate[]
+  pushDevices             PushDevice[]
+  whatsAppTemplates       WhatsAppTemplate[]
+  lookupRequests          LookupRequest[]
+
   @@index([userId])
   @@index([type, status])
   @@index([slug])
@@ -530,71 +558,59 @@ model Account {
   @@index([registrationNumber])
   @@index([subscriptionPlan, subscriptionStatus])
   @@map("accounts")
-  smsConversationMessages SmsConversationMessage[]
-  smsConversationNotes SmsConversationNote[]
-  chatMessages ChatMessage[]
-  chatNotes ChatNote[]
-  chatAgents ChatAgent[]
-  chatQueues ChatQueue[]
-  conversationBridges ConversationBridge[]
-  emailTemplates EmailTemplate[]
-  ivrTemplates IvrTemplate[]
-  pushDevices PushDevice[]
-  whatsAppTemplates WhatsAppTemplate[]
-  lookupRequests LookupRequest[]
 }
 
 model TeamMember {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   accountId String
-  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
-  
-  email       String   @unique
-  name        String?
-  role        TeamRole @default(MEMBER)
-  
+  user      User?   @relation(fields: [userId], references: [id])
+
+  email String   @unique
+  name  String?
+  role  TeamRole @default(MEMBER)
+
   // Permissions
-  permissions          String[]
-  
-  canSendMessages     Boolean @default(false)
-  canManageContacts   Boolean @default(false)
-  canManageTemplates  Boolean @default(false)
-  canManageCampaigns  Boolean @default(false)
-  canViewAnalytics    Boolean @default(false)
-  canManageBilling    Boolean @default(false)
-  canManageTeam       Boolean @default(false)
-  canManageApiKeys    Boolean @default(false)
-  canManageWebhooks   Boolean @default(false)
-  
+  permissions String[]
+
+  canSendMessages    Boolean @default(false)
+  canManageContacts  Boolean @default(false)
+  canManageTemplates Boolean @default(false)
+  canManageCampaigns Boolean @default(false)
+  canViewAnalytics   Boolean @default(false)
+  canManageBilling   Boolean @default(false)
+  canManageTeam      Boolean @default(false)
+  canManageApiKeys   Boolean @default(false)
+  canManageWebhooks  Boolean @default(false)
+
   // Restrictions
-  ipRestrictions      String[]
-  timeRestrictions    Json?
-  maxDailyMessages    Int?
-  
+  ipRestrictions   String[]
+  timeRestrictions Json?
+  maxDailyMessages Int?
+
   // Status
-  isActive      Boolean   @default(false)
-  isSuspended   Boolean   @default(false)
-  inviteToken   String?   @unique
-  inviteSentAt  DateTime? @default(now())
+  isActive        Boolean   @default(false)
+  isSuspended     Boolean   @default(false)
+  inviteToken     String?   @unique
+  inviteSentAt    DateTime? @default(now())
   inviteExpiresAt DateTime?
-  acceptedAt    DateTime?
-  
+  acceptedAt      DateTime?
+
   // Activity
-  lastAccessAt  DateTime?
-  lastMessageAt DateTime?
+  lastAccessAt     DateTime?
+  lastMessageAt    DateTime?
   currentSessionId String?
-  
+
   // Statistics
   messagesSent     Int @default(0)
   contactsAdded    Int @default(0)
   campaignsCreated Int @default(0)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   suspendedAt DateTime?
-  
+
   @@index([accountId])
   @@index([email])
   @@index([accountId, isActive])
@@ -610,26 +626,26 @@ model ApiKey {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  name        String
-  key         String   @unique
-  secretHash  String
-  prefix      String
-  
-  environment String @default("production")
+
+  name       String
+  key        String @unique
+  secretHash String
+  prefix     String
+
+  environment String   @default("production")
   permissions String[]
-  
-  ipWhitelist    String[]
-  rateLimit      Int?    @default(100)
-  expiresAt      DateTime?
-  
-  isActive     Boolean   @default(true)
-  lastUsedAt   DateTime?
-  totalRequests Int      @default(0)
-  
+
+  ipWhitelist String[]
+  rateLimit   Int?      @default(100)
+  expiresAt   DateTime?
+
+  isActive      Boolean   @default(true)
+  lastUsedAt    DateTime?
+  totalRequests Int       @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([accountId])
   @@index([key])
   @@map("api_keys")
@@ -643,30 +659,30 @@ model SenderId {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  name        String
-  type        SenderIdType   @default(DEDICATED)
-  status      SenderIdStatus @default(PENDING)
-  
+
+  name   String
+  type   SenderIdType   @default(DEDICATED)
+  status SenderIdStatus @default(PENDING)
+
   country     String  @default("GH")
   description String?
   useCase     String?
   isDefault   Boolean @default(false)
-  
+
   rejectionReason String?
   approvedAt      DateTime?
   approvedBy      String?
-  
+
   isActive Boolean @default(true)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  messages     Message[]
-  campaigns    Campaign[]
-  otpMessages  OtpMessage[]
+
+  messages         Message[]
+  campaigns        Campaign[]
+  otpMessages      OtpMessage[]
   smsConversations SmsConversation[]
-  
+
   @@unique([accountId, name])
   @@index([accountId, status])
   @@map("sender_ids")
@@ -680,51 +696,51 @@ model Message {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  recipient         String
-  recipientCountry  String?
-  recipientNetwork  String?
-  content           String
-  messageType       MessageType @default(SMS)
-  
+
+  recipient        String
+  recipientCountry String?
+  recipientNetwork String?
+  content          String
+  messageType      MessageType @default(SMS)
+
   senderId   String?
   sender     SenderId? @relation(fields: [senderId], references: [id])
   senderName String
-  
-  status            MessageStatus @default(PENDING)
-  provider          String?
-  providerId        String?
-  providerStatus    String?
-  providerMessage   String?
-  
-  units       Int    @default(1)
-  unitCost    Float
-  totalCost   Float
-  currency    String @default("GHS")
-  
+
+  status          MessageStatus @default(PENDING)
+  provider        String?
+  providerId      String?
+  providerStatus  String?
+  providerMessage String?
+
+  units     Int    @default(1)
+  unitCost  Float
+  totalCost Float
+  currency  String @default("GHS")
+
   scheduledFor DateTime?
   queuedAt     DateTime?
   sentAt       DateTime?
   deliveredAt  DateTime?
   failedAt     DateTime?
   expiresAt    DateTime?
-  
-  campaignId  String?
-  campaign    Campaign? @relation(fields: [campaignId], references: [id])
-  templateId  String?
-  template    Template? @relation(fields: [templateId], references: [id])
-  batchId     String?
-  
+
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
+  templateId String?
+  template   Template? @relation(fields: [templateId], references: [id])
+  batchId    String?
+
   errorCode    String?
   errorMessage String?
-  retryCount   Int @default(0)
-  
+  retryCount   Int     @default(0)
+
   metadata Json?
   tags     String[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([accountId, status])
   @@index([accountId, createdAt])
   @@index([recipient])
@@ -735,26 +751,26 @@ model Message {
 }
 
 model InboundMessage {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   accountId String?
   account   Account? @relation(fields: [accountId], references: [id])
-  
-  from        String
-  to          String
-  content     String
-  network     String?
-  country     String?
-  
-  processed   Boolean @default(false)
+
+  from    String
+  to      String
+  content String
+  network String?
+  country String?
+
+  processed   Boolean   @default(false)
   processedAt DateTime?
   response    String?
-  
-  provider    String?
-  providerId  String?
-  rawData     Json?
-  
+
+  provider   String?
+  providerId String?
+  rawData    Json?
+
   createdAt DateTime @default(now())
-  
+
   @@index([accountId, createdAt])
   @@index([from])
   @@index([to])
@@ -765,36 +781,36 @@ model OtpMessage {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  recipient         String
-  recipientCountry  String?
-  codeHash          String
-  codeLength        Int @default(6)
-  
-  status        OTPStatus @default(PENDING)
-  verifiedAt    DateTime?
-  
-  expiresAt     DateTime
-  maxAttempts   Int @default(3)
-  attempts      Int @default(0)
-  
+
+  recipient        String
+  recipientCountry String?
+  codeHash         String
+  codeLength       Int     @default(6)
+
+  status     OTPStatus @default(PENDING)
+  verifiedAt DateTime?
+
+  expiresAt   DateTime
+  maxAttempts Int      @default(3)
+  attempts    Int      @default(0)
+
   senderId   String?
   sender     SenderId? @relation(fields: [senderId], references: [id])
   senderName String
-  
-  messageId     String?
-  provider      String?
-  providerId    String?
-  
+
+  messageId  String?
+  provider   String?
+  providerId String?
+
   cost     Float
   currency String @default("GHS")
-  
-  purpose   String?
-  metadata  Json?
-  
+
+  purpose  String?
+  metadata Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([accountId, status])
   @@index([recipient, status])
   @@index([expiresAt])
@@ -809,38 +825,38 @@ model SmsConversation {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
+
   phoneNumber String
   contactId   String?
   contact     Contact? @relation(fields: [contactId], references: [id])
-  
-  senderId   String?
-  sender     SenderId? @relation(fields: [senderId], references: [id])
-  
-  status      SmsConversationStatus @default(ACTIVE)
-  priority    String @default("normal")
-  
-  messageCount    Int @default(0)
-  unreadCount     Int @default(0)
-  lastMessageAt   DateTime?
-  lastMessageText String?
+
+  senderId String?
+  sender   SenderId? @relation(fields: [senderId], references: [id])
+
+  status   SmsConversationStatus @default(ACTIVE)
+  priority String                @default("normal")
+
+  messageCount         Int                  @default(0)
+  unreadCount          Int                  @default(0)
+  lastMessageAt        DateTime?
+  lastMessageText      String?
   lastMessageDirection SmsMessageDirection?
-  
-  assignedTo      String?
-  assignedAt      DateTime?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  resolvedAt      DateTime?
-  closedAt        DateTime?
-  
-  tags            String[]
-  metadata        Json?
-  
-  messages        SmsConversationMessage[]
-  notes           SmsConversationNote[]
+
+  assignedTo String?
+  assignedAt DateTime?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
+  closedAt   DateTime?
+
+  tags     String[]
+  metadata Json?
+
+  messages           SmsConversationMessage[]
+  notes              SmsConversationNote[]
   conversationBridge ConversationBridge?
-  
+
   @@unique([accountId, phoneNumber, senderId])
   @@index([accountId, status])
   @@index([accountId, phoneNumber])
@@ -849,39 +865,39 @@ model SmsConversation {
 }
 
 model SmsConversationMessage {
-  id              String  @id @default(cuid())
-  conversationId  String
-  conversation    SmsConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  accountId       String
-  account         Account @relation(fields: [accountId], references: [id])
-  
-  direction       SmsMessageDirection
-  content         String
-  messageType     MessageType @default(SMS)
-  
-  status          MessageDeliveryStatus @default(PENDING)
-  provider        String?
-  providerId      String?
-  providerStatus  String?
-  
-  sentAt          DateTime?
-  deliveredAt     DateTime?
-  failedAt        DateTime?
-  errorCode       String?
-  errorMessage    String?
-  
-  isReply         Boolean @default(false)
-  repliedToId     String?
-  
-  cost            Float?
-  currency        String @default("GHS")
-  units           Int    @default(1)
-  
-  metadata        Json?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  id             String          @id @default(cuid())
+  conversationId String
+  conversation   SmsConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  accountId      String
+  account        Account         @relation(fields: [accountId], references: [id])
+
+  direction   SmsMessageDirection
+  content     String
+  messageType MessageType         @default(SMS)
+
+  status         MessageDeliveryStatus @default(PENDING)
+  provider       String?
+  providerId     String?
+  providerStatus String?
+
+  sentAt       DateTime?
+  deliveredAt  DateTime?
+  failedAt     DateTime?
+  errorCode    String?
+  errorMessage String?
+
+  isReply     Boolean @default(false)
+  repliedToId String?
+
+  cost     Float?
+  currency String @default("GHS")
+  units    Int    @default(1)
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([conversationId, createdAt])
   @@index([accountId, direction, createdAt])
   @@index([providerId])
@@ -889,22 +905,22 @@ model SmsConversationMessage {
 }
 
 model SmsConversationNote {
-  id              String  @id @default(cuid())
-  conversationId  String
-  conversation    SmsConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  accountId       String
-  account         Account @relation(fields: [accountId], references: [id])
-  
-  content         String
-  authorId        String?
-  authorName      String?
-  authorType      String @default("user")
-  
-  isInternal      Boolean @default(true)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  id             String          @id @default(cuid())
+  conversationId String
+  conversation   SmsConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  accountId      String
+  account        Account         @relation(fields: [accountId], references: [id])
+
+  content    String
+  authorId   String?
+  authorName String?
+  authorType String  @default("user")
+
+  isInternal Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([conversationId])
   @@map("sms_conversation_notes")
 }
@@ -917,30 +933,30 @@ model Contact {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  phone       String
-  email       String?
-  firstName   String?
-  lastName    String?
-  
-  country     String?
-  city        String?
-  timezone    String?
-  language    String?
+
+  phone     String
+  email     String?
+  firstName String?
+  lastName  String?
+
+  country      String?
+  city         String?
+  timezone     String?
+  language     String?
   customFields Json?
-  tags        String[]
-  
+  tags         String[]
+
   isActive     Boolean   @default(true)
   isSubscribed Boolean   @default(true)
   optedOutAt   DateTime?
   source       String    @default("manual")
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   groupMemberships ContactGroupMembership[]
   smsConversations SmsConversation[]
-  
+
   @@unique([accountId, phone])
   @@index([accountId])
   @@index([phone])
@@ -952,19 +968,19 @@ model ContactGroup {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
+
   name        String
   description String?
   color       String? @default("#3B82F6")
-  
+
   contactCount Int @default(0)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  members      ContactGroupMembership[]
-  campaigns    Campaign[]
-  
+
+  members   ContactGroupMembership[]
+  campaigns Campaign[]
+
   @@unique([accountId, name])
   @@index([accountId])
   @@map("contact_groups")
@@ -976,9 +992,9 @@ model ContactGroupMembership {
   contact   Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
   groupId   String
   group     ContactGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  
-  addedAt   DateTime @default(now())
-  
+
+  addedAt DateTime @default(now())
+
   @@unique([contactId, groupId])
   @@index([groupId])
   @@map("contact_group_memberships")
@@ -992,30 +1008,30 @@ model Template {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
+
   name      String
   content   String
   variables String[]
-  
-  category  String @default("general")
-  language  String @default("en")
-  tags      String[]
-  
-  requiresApproval Boolean @default(false)
-  approvalStatus   String  @default("pending")
+
+  category String   @default("general")
+  language String   @default("en")
+  tags     String[]
+
+  requiresApproval Boolean   @default(false)
+  approvalStatus   String    @default("pending")
   approvedAt       DateTime?
   approvedBy       String?
-  
-  isActive   Boolean @default(true)
-  useCount   Int     @default(0)
+
+  isActive   Boolean   @default(true)
+  useCount   Int       @default(0)
   lastUsedAt DateTime?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  messages   Message[]
-  campaigns  Campaign[]
-  
+
+  messages  Message[]
+  campaigns Campaign[]
+
   @@unique([accountId, name])
   @@index([accountId])
   @@map("templates")
@@ -1025,43 +1041,43 @@ model Campaign {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
+
   name        String
   description String?
-  
-  content     String
-  templateId  String?
-  template    Template? @relation(fields: [templateId], references: [id])
-  
-  groupId     String?
-  group       ContactGroup? @relation(fields: [groupId], references: [id])
-  filters     Json?
-  
-  senderId   String?
-  sender     SenderId? @relation(fields: [senderId], references: [id])
-  
-  status        CampaignStatus @default(DRAFT)
-  scheduledFor  DateTime?
-  startedAt     DateTime?
-  completedAt   DateTime?
-  
-  totalRecipients Int   @default(0)
-  sentCount       Int   @default(0)
-  deliveredCount  Int   @default(0)
-  failedCount     Int   @default(0)
-  pendingCount    Int   @default(0)
-  
+
+  content    String
+  templateId String?
+  template   Template? @relation(fields: [templateId], references: [id])
+
+  groupId String?
+  group   ContactGroup? @relation(fields: [groupId], references: [id])
+  filters Json?
+
+  senderId String?
+  sender   SenderId? @relation(fields: [senderId], references: [id])
+
+  status       CampaignStatus @default(DRAFT)
+  scheduledFor DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+
+  totalRecipients Int @default(0)
+  sentCount       Int @default(0)
+  deliveredCount  Int @default(0)
+  failedCount     Int @default(0)
+  pendingCount    Int @default(0)
+
   estimatedCost Float @default(0)
   actualCost    Float @default(0)
-  
-  sendSpeed      String @default("normal")
+
+  sendSpeed       String  @default("normal")
   allowDuplicates Boolean @default(false)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   messages Message[]
-  
+
   @@index([accountId, status])
   @@index([scheduledFor])
   @@map("campaigns")
@@ -1072,38 +1088,39 @@ model Campaign {
 // ============================================
 
 model Transaction {
-  id        String  @id @default(cuid())
-  accountId String
-  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  type        TransactionType
-  amount      Float
-  currency    String @default("GHS")
-  
-  walletBefore  Float?
-  walletAfter   Float?
-  creditBefore  Float?
-  creditAfter   Float?
-  
+  id          String  @id @default(cuid())
+  accountId   String
+  account     Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  serviceType String? // sms, email, voice, whatsapp, push, lookup, chat
+
+  type     TransactionType
+  amount   Float
+  currency String          @default("GHS")
+
+  walletBefore Float?
+  walletAfter  Float?
+  creditBefore Float?
+  creditAfter  Float?
+
   description String
   reference   String? @unique
-  
+
   paymentMethod   PaymentMethod?
   paymentGateway  String?
-  paymentStatus   PaymentStatus @default(PENDING)
+  paymentStatus   PaymentStatus  @default(PENDING)
   paymentMetadata Json?
-  
+
   messageId    String?
   messageCount Int?
   conversionId String?
-  
+
   status String @default("completed")
-  
+
   metadata Json?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([accountId, type])
   @@index([accountId, createdAt])
   @@index([reference])
@@ -1115,27 +1132,27 @@ model Invoice {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  invoiceNumber String @unique
+
+  invoiceNumber String   @unique
   periodStart   DateTime
   periodEnd     DateTime
-  
-  subtotal     Float
-  taxAmount    Float @default(0)
-  totalAmount  Float
-  currency     String @default("GHS")
-  
-  items        Json
-  
-  status       String @default("draft")
-  dueDate      DateTime
-  paidAt       DateTime?
-  
-  pdfUrl       String?
-  
+
+  subtotal    Float
+  taxAmount   Float  @default(0)
+  totalAmount Float
+  currency    String @default("GHS")
+
+  items Json
+
+  status  String    @default("draft")
+  dueDate DateTime
+  paidAt  DateTime?
+
+  pdfUrl String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([accountId, status])
   @@index([invoiceNumber])
   @@map("invoices")
@@ -1149,28 +1166,28 @@ model Webhook {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  name    String
-  url     String
-  secret  String
-  events  WebhookEvent[]
-  
-  isActive       Boolean @default(true)
-  retryEnabled   Boolean @default(true)
-  maxRetries     Int     @default(3)
-  timeoutMs      Int     @default(10000)
-  
-  successCount   Int       @default(0)
-  failureCount   Int       @default(0)
+
+  name   String
+  url    String
+  secret String
+  events WebhookEvent[]
+
+  isActive     Boolean @default(true)
+  retryEnabled Boolean @default(true)
+  maxRetries   Int     @default(3)
+  timeoutMs    Int     @default(10000)
+
+  successCount    Int       @default(0)
+  failureCount    Int       @default(0)
   lastTriggeredAt DateTime?
   lastSuccessAt   DateTime?
   lastFailureAt   DateTime?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   deliveries WebhookDelivery[]
-  
+
   @@index([accountId])
   @@map("webhooks")
 }
@@ -1179,22 +1196,22 @@ model WebhookDelivery {
   id        String  @id @default(cuid())
   webhookId String
   webhook   Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
-  
-  event     WebhookEvent
-  payload   Json
-  attempt   Int @default(1)
-  
-  status    String @default("pending")
+
+  event   WebhookEvent
+  payload Json
+  attempt Int          @default(1)
+
+  status       String  @default("pending")
   responseCode Int?
   responseBody String?
-  error       String?
-  
-  triggeredAt DateTime @default(now())
+  error        String?
+
+  triggeredAt DateTime  @default(now())
   deliveredAt DateTime?
   nextRetryAt DateTime?
-  
+
   createdAt DateTime @default(now())
-  
+
   @@index([webhookId, status])
   @@index([triggeredAt])
   @@map("webhook_deliveries")
@@ -1208,27 +1225,54 @@ model DailyStats {
   id        String   @id @default(cuid())
   accountId String
   date      DateTime @db.Date
-  
-  smsSent       Int @default(0)
-  smsDelivered  Int @default(0)
-  smsFailed     Int @default(0)
-  smsCost       Float @default(0)
-  
-  otpSent       Int @default(0)
-  otpVerified   Int @default(0)
-  otpFailed     Int @default(0)
-  otpCost       Float @default(0)
-  
-  walletTopups  Float @default(0)
-  walletSpent   Float @default(0)
-  creditsAdded  Float @default(0)
-  creditsUsed   Float @default(0)
-  
+
+  smsSent      Int   @default(0)
+  smsDelivered Int   @default(0)
+  smsFailed    Int   @default(0)
+  smsCost      Float @default(0)
+
+  otpSent     Int   @default(0)
+  otpVerified Int   @default(0)
+  otpFailed   Int   @default(0)
+  otpCost     Float @default(0)
+
+  // Add these:
+  emailSent      Int   @default(0)
+  emailDelivered Int   @default(0)
+  emailOpened    Int   @default(0)
+  emailCost      Float @default(0)
+
+  voiceCallsMade Int   @default(0)
+  voiceMinutes   Int   @default(0) // Total minutes
+  voiceCost      Float @default(0)
+
+  whatsappSent      Int   @default(0)
+  whatsappDelivered Int   @default(0)
+  whatsappRead      Int   @default(0)
+  whatsappCost      Float @default(0)
+
+  pushSent      Int   @default(0)
+  pushDelivered Int   @default(0)
+  pushOpened    Int   @default(0)
+  pushCost      Float @default(0)
+
+  lookups    Int   @default(0)
+  lookupCost Float @default(0)
+
+  chatMessages Int   @default(0)
+  chatSessions Int   @default(0)
+  chatCost     Float @default(0)
+
+  walletTopups Float @default(0)
+  walletSpent  Float @default(0)
+  creditsAdded Float @default(0)
+  creditsUsed  Float @default(0)
+
   providerStats Json?
   networkStats  Json?
-  
+
   createdAt DateTime @default(now())
-  
+
   @@unique([accountId, date])
   @@index([accountId])
   @@index([date])
@@ -1240,29 +1284,29 @@ model DailyStats {
 // ============================================
 
 model AuditLog {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   accountId String?
   account   Account? @relation(fields: [accountId], references: [id])
-  
-  action    String
-  entity    String
-  entityId  String?
-  
+
+  action   String
+  entity   String
+  entityId String?
+
   actorType  String
   actorId    String?
   actorEmail String?
-  
+
   oldData Json?
   newData Json?
   changes Json?
-  
+
   ipAddress String?
   userAgent String?
-  
+
   description String?
-  
+
   createdAt DateTime @default(now())
-  
+
   @@index([accountId, createdAt])
   @@index([entity, entityId])
   @@index([actorType, actorId])
@@ -1270,26 +1314,26 @@ model AuditLog {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  title     String
-  message   String
-  type      String   @default("info")
-  priority  String   @default("normal")
-  
-  isRead    Boolean  @default(false)
-  readAt    DateTime?
-  
-  actionUrl String?
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title    String
+  message  String
+  type     String @default("info")
+  priority String @default("normal")
+
+  isRead Boolean   @default(false)
+  readAt DateTime?
+
+  actionUrl   String?
   actionLabel String?
-  
-  metadata  Json?
-  
+
+  metadata Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([userId, isRead])
   @@index([createdAt])
   @@map("notifications")
@@ -1301,26 +1345,27 @@ model Notification {
 
 model PricingRate {
   id String @id @default(cuid())
-  
+
   country     String
   network     String?
   messageType MessageType
   provider    String?
-  
+
   ratePerUnit Float
-  currency    String @default("GHS")
-  
+  currency    String      @default("GHS")
+  serviceType ServiceType @default(SMS)
+
   effectiveFrom DateTime
   effectiveTo   DateTime?
-  
-  minUnits    Int    @default(1)
-  maxUnits    Int?
-  
+
+  minUnits Int  @default(1)
+  maxUnits Int?
+
   isActive Boolean @default(true)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@unique([country, network, messageType, provider, effectiveFrom])
   @@index([country, isActive])
   @@map("pricing_rates")
@@ -1328,31 +1373,31 @@ model PricingRate {
 
 model Provider {
   id String @id @default(cuid())
-  
-  name        String @unique
-  type        ProviderType
-  status      ProviderStatus @default(ACTIVE)
-  
-  credentials   Json
-  config        Json
-  
+
+  name   String         @unique
+  type   ProviderType
+  status ProviderStatus @default(ACTIVE)
+
+  credentials Json
+  config      Json
+
   supportedCountries String[]
   supportedNetworks  String[]
-  
-  priority      Int    @default(1)
-  successRate   Float?
-  avgLatency    Int?
-  
-  rateLimit     Int?
-  monthlyLimit  Int?
-  
+
+  priority    Int    @default(1)
+  successRate Float?
+  avgLatency  Int?
+
+  rateLimit    Int?
+  monthlyLimit Int?
+
   lastCheckedAt DateTime?
   lastErrorAt   DateTime?
-  errorCount    Int     @default(0)
-  
+  errorCount    Int       @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([type, status])
   @@index([priority])
   @@map("providers")
@@ -1364,33 +1409,33 @@ model SystemSetting {
   value       Json
   category    String  @default("general")
   description String?
-  
-  isPublic    Boolean @default(false)
-  
+
+  isPublic Boolean @default(false)
+
   updatedAt DateTime @updatedAt
-  
+
   @@map("system_settings")
 }
 
 model ConversionRate {
   id String @id @default(cuid())
-  
+
   fromCurrency String
   toCurrency   String
   rate         Float
-  
+
   accountType AccountType?
   minAmount   Float        @default(0)
   maxAmount   Float?
-  
+
   effectiveFrom DateTime
   effectiveTo   DateTime?
-  
+
   isActive Boolean @default(true)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@unique([fromCurrency, toCurrency, accountType, effectiveFrom])
   @@index([fromCurrency, toCurrency, isActive])
   @@map("conversion_rates")
@@ -1398,41 +1443,41 @@ model ConversionRate {
 
 model Country {
   id String @id @default(cuid())
-  
-  code        String @unique
-  name        String
-  dialCode    String
-  currency    String
-  timezone    String
-  
+
+  code     String @unique
+  name     String
+  dialCode String
+  currency String
+  timezone String
+
   smsEnabled      Boolean @default(true)
   defaultSenderId String?
   maxSmsLength    Int     @default(160)
-  
+
   requiresSenderIdRegistration Boolean @default(false)
   requiresTemplateRegistration Boolean @default(false)
-  
+
   isActive Boolean @default(true)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@map("countries")
 }
 
 model Network {
   id String @id @default(cuid())
-  
+
   countryCode String
-  code        String @unique
+  code        String   @unique
   name        String
   prefix      String[]
-  
-  isActive    Boolean @default(true)
-  
+
+  isActive Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([countryCode])
   @@map("networks")
 }
@@ -1442,86 +1487,86 @@ model Network {
 // ============================================
 
 model SubscriptionPlan {
-  id              String   @id @default(cuid())
-  name            String   @unique
-  code            String   @unique
-  
-  isPersonal      Boolean  @default(true)
-  isBusiness      Boolean  @default(false)
-  
-  priceMonthly    Float?
-  priceYearly     Float?
-  currency        String   @default("GHS")
-  trialDays       Int      @default(0)
-  
-  maxMessagesMonthly   Int?
-  maxContacts          Int?
-  maxTeamMembers       Int?
-  maxSenderIds         Int?
-  maxApiKeys           Int?
-  maxWebhooks          Int?
-  
-  features            Json
-  
-  isActive            Boolean  @default(true)
-  isPublic            Boolean  @default(true)
-  
-  description         String?
-  benefits            String[]
-  mostPopular         Boolean  @default(false)
-  
+  id   String @id @default(cuid())
+  name String @unique
+  code String @unique
+
+  isPersonal Boolean @default(true)
+  isBusiness Boolean @default(false)
+
+  priceMonthly Float?
+  priceYearly  Float?
+  currency     String @default("GHS")
+  trialDays    Int    @default(0)
+
+  maxMessagesMonthly Int?
+  maxContacts        Int?
+  maxTeamMembers     Int?
+  maxSenderIds       Int?
+  maxApiKeys         Int?
+  maxWebhooks        Int?
+
+  features Json
+
+  isActive Boolean @default(true)
+  isPublic Boolean @default(true)
+
+  description String?
+  benefits    String[]
+  mostPopular Boolean  @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@map("subscription_plans")
 }
 
 model AccountLimits {
-  id            String   @id @default(cuid())
-  accountId     String   @unique
-  account       Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  dailySmsLimit         Int?   @default(1000)
-  monthlySmsLimit       Int?   @default(30000)
-  dailySmsSent          Int    @default(0)
-  monthlySmsSent        Int    @default(0)
-  
-  dailySpendLimit       Float? @default(500)
-  monthlySpendLimit     Float? @default(15000)
-  dailySpent            Float  @default(0)
-  monthlySpent          Float  @default(0)
-  
-  maxContacts           Int?
-  currentContacts       Int    @default(0)
-  
-  maxTeamMembers        Int?
-  currentTeamMembers    Int    @default(0)
-  
-  apiRateLimit          Int    @default(100)
-  apiRequestsToday      Int    @default(0)
-  apiRequestsThisMonth  Int    @default(0)
-  
-  maxCampaigns          Int?
-  currentCampaigns      Int    @default(0)
-  
-  maxTemplates          Int?
-  currentTemplates      Int    @default(0)
-  
-  maxSenderIds          Int?
-  currentSenderIds      Int    @default(0)
-  
-  maxApiKeys            Int?
-  currentApiKeys        Int    @default(0)
-  
-  maxWebhooks           Int?
-  currentWebhooks       Int    @default(0)
-  
-  lastDailyReset        DateTime?
-  lastMonthlyReset      DateTime?
-  
+  id        String  @id @default(cuid())
+  accountId String  @unique
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  dailySmsLimit   Int? @default(1000)
+  monthlySmsLimit Int? @default(30000)
+  dailySmsSent    Int  @default(0)
+  monthlySmsSent  Int  @default(0)
+
+  dailySpendLimit   Float? @default(500)
+  monthlySpendLimit Float? @default(15000)
+  dailySpent        Float  @default(0)
+  monthlySpent      Float  @default(0)
+
+  maxContacts     Int?
+  currentContacts Int  @default(0)
+
+  maxTeamMembers     Int?
+  currentTeamMembers Int  @default(0)
+
+  apiRateLimit         Int @default(100)
+  apiRequestsToday     Int @default(0)
+  apiRequestsThisMonth Int @default(0)
+
+  maxCampaigns     Int?
+  currentCampaigns Int  @default(0)
+
+  maxTemplates     Int?
+  currentTemplates Int  @default(0)
+
+  maxSenderIds     Int?
+  currentSenderIds Int  @default(0)
+
+  maxApiKeys     Int?
+  currentApiKeys Int  @default(0)
+
+  maxWebhooks     Int?
+  currentWebhooks Int  @default(0)
+
+  lastDailyReset   DateTime?
+  lastMonthlyReset DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@map("account_limits")
 }
 
@@ -1533,78 +1578,78 @@ model ChatWidget {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
+
   name        String
   description String?
   domain      String?
-  
+
   config      Json
   onlineHours Json?
-  
-  status      ChatWidgetStatus @default(OFFLINE)
-  isActive    Boolean @default(true)
-  
-  totalSessions   Int @default(0)
+
+  status   ChatWidgetStatus @default(OFFLINE)
+  isActive Boolean          @default(true)
+
+  totalSessions   Int    @default(0)
   avgResponseTime Float?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   chatSessions ChatSession[]
-  
+
   @@unique([accountId, name])
   @@index([accountId])
   @@map("chat_widgets")
 }
 
 model ChatSession {
-  id        String  @id @default(cuid())
+  id        String      @id @default(cuid())
   accountId String
-  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account   Account     @relation(fields: [accountId], references: [id], onDelete: Cascade)
   widgetId  String?
   widget    ChatWidget? @relation(fields: [widgetId], references: [id])
-  
+
   visitorId    String
   visitorName  String?
   visitorEmail String?
   visitorPhone String?
-  
-  status        ChatSessionStatus @default(QUEUED)
-  priority      String @default("normal")
-  
+
+  status   ChatSessionStatus @default(QUEUED)
+  priority String            @default("normal")
+
   assignedTo    String?
   assignedAt    DateTime?
   assignedQueue String?
-  
-  pageUrl       String?
-  pageTitle     String?
-  userAgent     String?
-  ipAddress     String?
-  country       String?
-  city          String?
-  
-  queuedAt      DateTime? @default(now())
-  acceptedAt    DateTime?
-  startedAt     DateTime?
-  resolvedAt    DateTime?
-  closedAt      DateTime?
+
+  pageUrl   String?
+  pageTitle String?
+  userAgent String?
+  ipAddress String?
+  country   String?
+  city      String?
+
+  queuedAt       DateTime? @default(now())
+  acceptedAt     DateTime?
+  startedAt      DateTime?
+  resolvedAt     DateTime?
+  closedAt       DateTime?
   lastActivityAt DateTime?
-  
-  messageCount  Int @default(0)
-  waitTime      Int?
-  duration      Int?
-  
-  metadata      Json?
-  tags          String[]
-  
-  messages      ChatMessage[]
-  notes         ChatNote[]
-  transfers     ChatTransfer[]
+
+  messageCount Int  @default(0)
+  waitTime     Int?
+  duration     Int?
+
+  metadata Json?
+  tags     String[]
+
+  messages           ChatMessage[]
+  notes              ChatNote[]
+  transfers          ChatTransfer[]
   conversationBridge ConversationBridge?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([accountId, status])
   @@index([accountId, visitorId])
   @@index([assignedTo, status])
@@ -1613,73 +1658,73 @@ model ChatSession {
 }
 
 model ChatMessage {
-  id              String  @id @default(cuid())
-  sessionId       String
-  session         ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  accountId       String
-  account         Account @relation(fields: [accountId], references: [id])
-  
-  type            ChatMessageType @default(TEXT)
-  content         String?
-  senderType      String @default("visitor")
-  senderId        String?
-  
-  fileUrl         String?
-  fileName        String?
-  fileType        String?
-  fileSize        Int?
-  
-  isDelivered     Boolean @default(true)
-  deliveredAt     DateTime?
-  isRead          Boolean @default(false)
-  readAt          DateTime?
-  
-  isReply         Boolean @default(false)
-  repliedToId     String?
-  
-  metadata        Json?
-  
-  createdAt       DateTime @default(now())
-  
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  accountId String
+  account   Account     @relation(fields: [accountId], references: [id])
+
+  type       ChatMessageType @default(TEXT)
+  content    String?
+  senderType String          @default("visitor")
+  senderId   String?
+
+  fileUrl  String?
+  fileName String?
+  fileType String?
+  fileSize Int?
+
+  isDelivered Boolean   @default(true)
+  deliveredAt DateTime?
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+
+  isReply     Boolean @default(false)
+  repliedToId String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
   @@index([sessionId, createdAt])
   @@index([accountId, senderType, createdAt])
   @@map("chat_messages")
 }
 
 model ChatNote {
-  id              String  @id @default(cuid())
-  sessionId       String
-  session         ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  accountId       String
-  account         Account @relation(fields: [accountId], references: [id])
-  
-  content         String
-  authorId        String
-  authorName      String?
-  isInternal      Boolean @default(true)
-  
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  accountId String
+  account   Account     @relation(fields: [accountId], references: [id])
+
+  content    String
+  authorId   String
+  authorName String?
+  isInternal Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([sessionId])
   @@map("chat_notes")
 }
 
 model ChatTransfer {
-  id              String  @id @default(cuid())
-  sessionId       String
-  session         ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
-  fromAgentId     String?
-  toAgentId       String?
-  fromQueue       String?
-  toQueue         String?
-  
-  reason          String?
-  note            String?
-  
-  transferredAt   DateTime @default(now())
-  
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  fromAgentId String?
+  toAgentId   String?
+  fromQueue   String?
+  toQueue     String?
+
+  reason String?
+  note   String?
+
+  transferredAt DateTime @default(now())
+
   @@index([sessionId])
   @@index([toAgentId])
   @@map("chat_transfers")
@@ -1691,28 +1736,28 @@ model ChatAgent {
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   userId    String?
   user      User?   @relation(fields: [userId], references: [id])
-  
-  displayName  String
-  avatarUrl    String?
-  bio          String?
-  
-  status       ChatWidgetStatus @default(OFFLINE)
-  currentSessions Int @default(0)
-  maxSessions  Int @default(5)
-  
-  queues       String[]
-  skills       String[]
-  
-  isAvailable  Boolean @default(true)
+
+  displayName String
+  avatarUrl   String?
+  bio         String?
+
+  status          ChatWidgetStatus @default(OFFLINE)
+  currentSessions Int              @default(0)
+  maxSessions     Int              @default(5)
+
+  queues String[]
+  skills String[]
+
+  isAvailable  Boolean   @default(true)
   lastActiveAt DateTime?
-  
-  totalSessions   Int @default(0)
-  avgResponseTime Float?
+
+  totalSessions    Int    @default(0)
+  avgResponseTime  Float?
   satisfactionRate Float?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([accountId, status])
   @@index([userId])
   @@map("chat_agents")
@@ -1722,24 +1767,24 @@ model ChatQueue {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
+
   name        String
   description String?
-  priority    Int @default(1)
-  
-  autoAssign  Boolean @default(true)
-  maxWaitTime Int?
+  priority    Int     @default(1)
+
+  autoAssign    Boolean @default(true)
+  maxWaitTime   Int?
   businessHours Json?
-  
-  waitingCount   Int @default(0)
-  avgWaitTime    Float?
-  avgHandleTime  Float?
-  
-  agents     String[]
-  
+
+  waitingCount  Int    @default(0)
+  avgWaitTime   Float?
+  avgHandleTime Float?
+
+  agents String[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@unique([accountId, name])
   @@index([accountId])
   @@map("chat_queues")
@@ -1750,25 +1795,25 @@ model ChatQueue {
 // ============================================
 
 model ConversationBridge {
-  id              String  @id @default(cuid())
-  accountId       String
-  account         Account @relation(fields: [accountId], references: [id])
-  
-  smsConversationId String? @unique
-  smsConversation SmsConversation? @relation(fields: [smsConversationId], references: [id])
-  
-  chatSessionId   String? @unique
-  chatSession     ChatSession? @relation(fields: [chatSessionId], references: [id])
-  
-  bridgeType      String @default("manual")
-  bridgedBy       String?
-  bridgedAt       DateTime @default(now())
-  
-  isActive        Boolean @default(true)
-  
+  id        String  @id @default(cuid())
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id])
+
+  smsConversationId String?          @unique
+  smsConversation   SmsConversation? @relation(fields: [smsConversationId], references: [id])
+
+  chatSessionId String?      @unique
+  chatSession   ChatSession? @relation(fields: [chatSessionId], references: [id])
+
+  bridgeType String   @default("manual")
+  bridgedBy  String?
+  bridgedAt  DateTime @default(now())
+
+  isActive Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@unique([smsConversationId, chatSessionId])
   @@index([accountId])
   @@map("conversation_bridges")
@@ -1782,37 +1827,37 @@ model EmailMessage {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  to          String
-  cc          String?
-  bcc         String?
-  subject     String
-  
+
+  to      String
+  cc      String?
+  bcc     String?
+  subject String
+
   htmlContent String?
   textContent String?
   templateId  String?
   template    EmailTemplate? @relation(fields: [templateId], references: [id])
-  
-  status      EmailStatus @default(PENDING)
-  
+
+  status EmailStatus @default(PENDING)
+
   provider        String?
   providerId      String?
   providerMessage String?
-  
-  openedAt    DateTime?
-  clickedAt   DateTime?
-  bounceType  String?
+
+  openedAt      DateTime?
+  clickedAt     DateTime?
+  bounceType    String?
   complaintType String?
-  
-  cost        Float?
-  currency    String @default("GHS")
-  
-  metadata    Json?
-  tags        String[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+
+  cost     Float?
+  currency String @default("GHS")
+
+  metadata Json?
+  tags     String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([accountId, status])
   @@index([to])
   @@index([providerId])
@@ -1820,32 +1865,32 @@ model EmailMessage {
 }
 
 model EmailTemplate {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   accountId String?
   account   Account? @relation(fields: [accountId], references: [id])
-  
+
   name        String
   subject     String
   htmlContent String
   textContent String?
   variables   String[]
-  
-  category    String @default("transactional")
-  language    String @default("en")
-  tags        String[]
-  
-  isActive    Boolean @default(true)
-  useCount    Int     @default(0)
-  
-  isSystem    Boolean @default(false)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
+
+  category String   @default("transactional")
+  language String   @default("en")
+  tags     String[]
+
+  isActive Boolean @default(true)
+  useCount Int     @default(0)
+
+  isSystem Boolean @default(false)
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  emailMessages EmailMessage[]
+
   @@unique([accountId, name])
   @@index([accountId])
   @@map("email_templates")
-  emailMessages EmailMessage[]
 }
 
 // ============================================
@@ -1856,38 +1901,38 @@ model VoiceCall {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  from          String
-  to            String
-  direction     VoiceCallDirection @default(OUTBOUND)
-  status        VoiceCallStatus @default(INITIATED)
-  
+
+  from      String
+  to        String
+  direction VoiceCallDirection @default(OUTBOUND)
+  status    VoiceCallStatus    @default(INITIATED)
+
   ivrFlow       Json?
   playMessage   String?
   gatherInput   Boolean @default(false)
   inputReceived String?
-  
-  provider        String?
-  providerCallId  String?
-  providerStatus  String?
-  
-  initiatedAt  DateTime? @default(now())
-  ringingAt    DateTime?
-  answeredAt   DateTime?
-  completedAt  DateTime?
-  duration     Int?
-  
+
+  provider       String?
+  providerCallId String?
+  providerStatus String?
+
+  initiatedAt DateTime? @default(now())
+  ringingAt   DateTime?
+  answeredAt  DateTime?
+  completedAt DateTime?
+  duration    Int?
+
   costPerMinute Float?
   totalCost     Float?
   currency      String @default("GHS")
-  
-  recordingUrl  String?
-  
-  metadata      Json?
-  
+
+  recordingUrl String?
+
+  metadata Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([accountId, status])
   @@index([to])
   @@index([providerCallId])
@@ -1895,22 +1940,22 @@ model VoiceCall {
 }
 
 model IvrTemplate {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   accountId String?
   account   Account? @relation(fields: [accountId], references: [id])
-  
+
   name        String
   description String?
   flow        Json
-  
-  isActive    Boolean @default(true)
-  useCount    Int     @default(0)
-  
-  isSystem    Boolean @default(false)
-  
+
+  isActive Boolean @default(true)
+  useCount Int     @default(0)
+
+  isSystem Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@unique([accountId, name])
   @@index([accountId])
   @@map("ivr_templates")
@@ -1921,68 +1966,68 @@ model IvrTemplate {
 // ============================================
 
 model PushDevice {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   accountId String?
   account   Account? @relation(fields: [accountId], references: [id])
   userId    String?
-  user      User?   @relation(fields: [userId], references: [id])
-  
-  token       String   @unique
+  user      User?    @relation(fields: [userId], references: [id])
+
+  token       String       @unique
   platform    PushPlatform
   deviceId    String?
   deviceModel String?
   osVersion   String?
-  
-  appVersion  String?
-  appBuild    String?
-  
-  isActive    Boolean @default(true)
+
+  appVersion String?
+  appBuild   String?
+
+  isActive     Boolean   @default(true)
   lastActiveAt DateTime?
-  
-  metadata    Json?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
+
+  metadata Json?
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  pushMessages PushMessage[]
+
   @@index([accountId])
   @@index([userId])
   @@index([token])
   @@map("push_devices")
-  pushMessages PushMessage[]
 }
 
 model PushMessage {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  deviceId  String?
-  device    PushDevice? @relation(fields: [deviceId], references: [id])
-  userId    String?
-  user      User? @relation(fields: [userId], references: [id])
-  
-  title     String
-  body      String
-  data      Json?
-  imageUrl  String?
-  deepLink  String?
-  
-  status    PushStatus @default(PENDING)
-  
-  provider        String?
-  providerId      String?
-  
-  sentAt     DateTime?
+
+  deviceId String?
+  device   PushDevice? @relation(fields: [deviceId], references: [id])
+  userId   String?
+  user     User?       @relation(fields: [userId], references: [id])
+
+  title    String
+  body     String
+  data     Json?
+  imageUrl String?
+  deepLink String?
+
+  status PushStatus @default(PENDING)
+
+  provider   String?
+  providerId String?
+
+  sentAt      DateTime?
   deliveredAt DateTime?
-  openedAt   DateTime?
-  
-  cost       Float?
-  
-  metadata   Json?
-  
+  openedAt    DateTime?
+
+  cost Float?
+
+  metadata Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([accountId, status])
   @@index([deviceId])
   @@index([userId])
@@ -1997,41 +2042,41 @@ model WhatsAppMessage {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  to          String
-  from        String?
-  
+
+  to   String
+  from String?
+
   messageType WhatsAppMessageType @default(TEXT)
   textContent String?
   mediaUrl    String?
   caption     String?
-  
-  templateName     String?
-  templateLanguage String? @default("en")
+
+  templateName      String?
+  templateLanguage  String? @default("en")
   templateVariables Json?
-  
-  status      WhatsAppStatus @default(PENDING)
-  
-  provider        String?
-  providerId      String?
-  providerStatus  String?
-  
+
+  status WhatsAppStatus @default(PENDING)
+
+  provider       String?
+  providerId     String?
+  providerStatus String?
+
   sentAt      DateTime?
   deliveredAt DateTime?
   readAt      DateTime?
-  
-  cost        Float?
-  currency    String @default("GHS")
-  
+
+  cost     Float?
+  currency String @default("GHS")
+
   conversationId String?
-  isReply       Boolean @default(false)
-  repliedToId   String?
-  
-  metadata    Json?
-  
+  isReply        Boolean @default(false)
+  repliedToId    String?
+
+  metadata Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([accountId, status])
   @@index([to])
   @@index([providerId])
@@ -2039,24 +2084,24 @@ model WhatsAppMessage {
 }
 
 model WhatsAppTemplate {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   accountId String?
   account   Account? @relation(fields: [accountId], references: [id])
-  
-  name        String
-  category    String
-  language    String @default("en")
-  components  Json
-  
-  providerId    String?
-  approvalStatus String @default("pending")
-  
-  isActive    Boolean @default(false)
-  useCount    Int     @default(0)
-  
+
+  name       String
+  category   String
+  language   String @default("en")
+  components Json
+
+  providerId     String?
+  approvalStatus String  @default("pending")
+
+  isActive Boolean @default(false)
+  useCount Int     @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@unique([accountId, name])
   @@index([accountId])
   @@map("whatsapp_templates")
@@ -2070,33 +2115,33 @@ model LookupRequest {
   id        String  @id @default(cuid())
   accountId String
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  
-  phoneNumber   String
-  lookupType    LookupType
-  countryCode   String?
-  
-  carrier       String?
-  network       String?
-  isPorted      Boolean?
-  portedFrom    String?
-  isValid       Boolean?
-  isActive      Boolean?
-  isRoaming     Boolean?
-  
-  cached        Boolean @default(false)
-  cachedAt      DateTime?
+
+  phoneNumber String
+  lookupType  LookupType
+  countryCode String?
+
+  carrier    String?
+  network    String?
+  isPorted   Boolean?
+  portedFrom String?
+  isValid    Boolean?
+  isActive   Boolean?
+  isRoaming  Boolean?
+
+  cached         Boolean   @default(false)
+  cachedAt       DateTime?
   cacheExpiresAt DateTime?
-  
-  provider        String?
+
+  provider          String?
   providerRequestId String?
-  
-  cost        Float?
-  currency    String @default("GHS")
-  
-  metadata    Json?
-  
+
+  cost     Float?
+  currency String @default("GHS")
+
+  metadata Json?
+
   createdAt DateTime @default(now())
-  
+
   @@index([accountId, createdAt])
   @@index([phoneNumber, lookupType])
   @@map("lookup_requests")
@@ -2106,22 +2151,22 @@ model LookupCache {
   id          String  @id @default(cuid())
   phoneNumber String
   countryCode String?
-  
-  carrier       String?
-  network       String?
-  isPorted      Boolean?
-  portedFrom    String?
-  isValid       Boolean?
-  isActive      Boolean?
-  
-  source        String
-  confidence    Float @default(1.0)
-  expiresAt     DateTime
-  hitCount      Int @default(0)
-  
+
+  carrier    String?
+  network    String?
+  isPorted   Boolean?
+  portedFrom String?
+  isValid    Boolean?
+  isActive   Boolean?
+
+  source     String
+  confidence Float    @default(1.0)
+  expiresAt  DateTime
+  hitCount   Int      @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@unique([phoneNumber, countryCode])
   @@index([phoneNumber])
   @@index([expiresAt])
