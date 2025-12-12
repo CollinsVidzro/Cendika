@@ -3,6 +3,7 @@ import prisma from '@database/prisma.client';
 import { SMSValidationService } from './sms-validation.service';
 import { SMSRouterService } from './sms-router.service';
 import { SMSAnalyticsService } from './sms-analytics.service';
+import { SMSProviderRouter } from '@core/providers/sms';
 import type { 
   SendSMSRequest, 
   BulkSMSRequest, 
@@ -84,9 +85,15 @@ export class SMSService {
 
       // If not scheduled, send immediately
       if (!isScheduled) {
-        // Queue for sending (in production, use a queue like BullMQ)
-        this.queueMessageForSending(message.id, routing.provider.id).catch(err => {
-          logger.error({ error: err, messageId: message.id }, 'Failed to queue message');
+        this.sendViaProvider(
+          message.id,
+          validation.formatted,
+          request.message,
+          senderId.name,
+          routing.country,
+          routing.network
+        ).catch(err => {
+          logger.error({ error: err, messageId: message.id }, 'Failed to send SMS');
         });
       }
 
@@ -123,6 +130,92 @@ export class SMSService {
     } catch (error: any) {
       logger.error({ error, accountId, request }, 'SMS send error');
       throw error;
+    }
+  }
+
+  // Send via provider (actual delivery)
+  private static async sendViaProvider(
+    messageId: string,
+    recipient: string,
+    message: string,
+    senderId: string,
+    country: string,
+    network?: string
+  ): Promise<void> {
+    try {
+      // Update status to sending
+      await prisma.message.update({
+        where: { id: messageId },
+        data: { 
+          status: MessageStatus.SENT,
+          queuedAt: new Date(),
+        },
+      });
+
+      // Send via provider router
+      const response = await SMSProviderRouter.sendSMS(
+        {
+          recipient,
+          message,
+          senderId,
+          messageId,
+        },
+        country,
+        network
+      );
+
+      if (response.success) {
+        // Update message with provider response
+        await prisma.message.update({
+          where: { id: messageId },
+          data: {
+            status: MessageStatus.SENT,
+            providerId: response.externalId,
+            providerStatus: response.status,
+            providerMessage: response.message,
+            sentAt: new Date(),
+          },
+        });
+
+        logger.info({
+          messageId,
+          providerId: response.externalId,
+          provider: response.providerId,
+        }, 'SMS sent successfully');
+
+      } else {
+        // Update message as failed
+        await prisma.message.update({
+          where: { id: messageId },
+          data: {
+            status: MessageStatus.FAILED,
+            errorCode: response.errorCode,
+            errorMessage: response.message,
+            failedAt: new Date(),
+          },
+        });
+
+        logger.error({
+          messageId,
+          error: response.message,
+          errorCode: response.errorCode,
+        }, 'SMS send failed');
+      }
+
+    } catch (error: any) {
+      logger.error({ error, messageId }, 'Provider send error');
+      
+      // Mark message as failed
+      await prisma.message.update({
+        where: { id: messageId },
+        data: {
+          status: MessageStatus.FAILED,
+          errorMessage: error.message,
+          failedAt: new Date(),
+        },
+      }).catch(err => {
+        logger.error({ error: err, messageId }, 'Failed to update message status');
+      });
     }
   }
 
@@ -231,9 +324,16 @@ export class SMSService {
             status: 'accepted',
           });
 
-          // Queue for sending
-          this.queueMessageForSending(msg.id, routing.provider.id).catch(err => {
-            logger.error({ error: err, messageId: msg.id }, 'Failed to queue message');
+          // Send via provider
+          this.sendViaProvider(
+            msg.id,
+            validation.formatted,
+            finalMessage,
+            senderId.name,
+            routing.country,
+            routing.network
+          ).catch(err => {
+            logger.error({ error: err, messageId: msg.id }, 'Failed to send bulk SMS');
           });
 
         } catch (error: any) {
@@ -348,25 +448,11 @@ export class SMSService {
     }
   }
 
-  // Queue message for sending (placeholder - implement with BullMQ)
-  private static async queueMessageForSending(
-    messageId: string,
-    providerId: string
-  ): Promise<void> {
-    // TODO: Implement actual queue system with BullMQ
-    // For now, we'll just update the status
-    logger.info({ messageId, providerId }, 'Message queued for sending (placeholder)');
-    
-    // In production, this would add to a queue:
-    // await smsQueue.add('send-sms', { messageId, providerId });
-  }
-
   // Resolve sender ID
   private static async resolveSenderId(
     accountId: string,
     requestedSenderId?: string
   ): Promise<{ id: string; name: string }> {
-    // If sender ID specified, find it
     if (requestedSenderId) {
       const senderId = await prisma.senderId.findFirst({
         where: {

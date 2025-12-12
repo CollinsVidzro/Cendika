@@ -3,28 +3,38 @@ import { createMiddleware } from 'hono/factory';
 import { ResponseBuilder } from '@utils/api-response';
 import { logger } from '@utils/logger';
 import prisma from '@database/prisma.client';
-import { verify } from 'hono/jwt';
-import { env } from '@config/env';
 
-// API Key authentication middleware
-export const apiKeyAuth = createMiddleware(async (c: Context, next: Next) => {
-  const apiKey = c.req.header('X-API-Key') || c.req.header('Authorization')?.replace('Bearer ', '');
-
-  if (!apiKey) {
-    logger.warn({ path: c.req.path }, 'API key missing');
-    return ResponseBuilder.unauthorized(c, 'API key is required');
+// Token-based authentication middleware (Bearer token)
+export const tokenAuth = createMiddleware(async (c: Context, next: Next) => {
+  const authHeader = c.req.header('Authorization');
+  
+  if (!authHeader) {
+    logger.warn({ path: c.req.path }, 'Authorization header missing');
+    return ResponseBuilder.unauthorized(c, 'Authorization header is required');
   }
 
+  // Extract token from "Bearer <token>" format
+  const match = authHeader.match(/^Bearer\s+(.+)$/);
+  if (!match) {
+    logger.warn({ header: authHeader.substring(0, 20) }, 'Invalid Authorization header format');
+    return ResponseBuilder.unauthorized(c, 'Invalid Authorization header format. Expected: Bearer <token>');
+  }
+
+  const token = match[1];
+
   try {
-    // Validate API key format
-    if (!apiKey.startsWith(env.API_KEY_PREFIX)) {
-      logger.warn({ apiKey: apiKey.substring(0, 10) }, 'Invalid API key format');
-      return ResponseBuilder.unauthorized(c, 'Invalid API key format');
+    // Decode the base64 token to get key and secret
+    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    const [key, secret] = decoded.split(':');
+
+    if (!key || !secret) {
+      logger.warn({ token: token.substring(0, 10) }, 'Invalid token format');
+      return ResponseBuilder.unauthorized(c, 'Invalid token format');
     }
 
     // Find API key in database
-    const key = await prisma.apiKey.findUnique({
-      where: { key: apiKey },
+    const apiKey = await prisma.apiKey.findUnique({
+      where: { key },
       include: {
         account: {
           select: {
@@ -41,144 +51,161 @@ export const apiKeyAuth = createMiddleware(async (c: Context, next: Next) => {
       },
     });
 
-    if (!key) {
-      logger.warn({ apiKey: apiKey.substring(0, 10) }, 'API key not found');
-      return ResponseBuilder.unauthorized(c, 'Invalid API key');
+    if (!apiKey) {
+      logger.warn({ key: key.substring(0, 10) }, 'API key not found');
+      return ResponseBuilder.unauthorized(c, 'Invalid token');
+    }
+
+    // Verify secret (in production, you should hash and compare)
+    // For now, we'll assume the token contains the actual secret
+    // In a real implementation, you would hash the secret and compare
+    if (secret !== apiKey.secretHash) {
+      // Note: In production, use proper hashing like bcrypt
+      logger.warn({ keyId: apiKey.id }, 'Invalid secret');
+      return ResponseBuilder.unauthorized(c, 'Invalid token');
     }
 
     // Check if key is active
-    if (!key.isActive) {
-      logger.warn({ keyId: key.id }, 'API key is inactive');
-      return ResponseBuilder.unauthorized(c, 'API key is inactive');
+    if (!apiKey.isActive) {
+      logger.warn({ keyId: apiKey.id }, 'API key is inactive');
+      return ResponseBuilder.unauthorized(c, 'Token is inactive');
     }
 
     // Check if key has expired
-    if (key.expiresAt && new Date(key.expiresAt) < new Date()) {
-      logger.warn({ keyId: key.id, expiresAt: key.expiresAt }, 'API key has expired');
-      return ResponseBuilder.unauthorized(c, 'API key has expired');
+    if (apiKey.expiresAt && new Date(apiKey.expiresAt) < new Date()) {
+      logger.warn({ keyId: apiKey.id, expiresAt: apiKey.expiresAt }, 'API key has expired');
+      return ResponseBuilder.unauthorized(c, 'Token has expired');
     }
 
     // Check account status
-    if (key.account.status !== 'ACTIVE') {
-      logger.warn({ accountId: key.accountId, status: key.account.status }, 'Account is not active');
+    if (apiKey.account.status !== 'ACTIVE') {
+      logger.warn({ 
+        accountId: apiKey.accountId, 
+        status: apiKey.account.status 
+      }, 'Account is not active');
       return ResponseBuilder.forbidden(c, 'Account is not active');
     }
 
     // Check IP whitelist if configured
-    if (key.ipWhitelist && key.ipWhitelist.length > 0) {
+    if (apiKey.ipWhitelist && apiKey.ipWhitelist.length > 0) {
       const clientIp = c.req.header('x-forwarded-for')?.split(',')[0] || 
                        c.req.header('x-real-ip') || 
                        'unknown';
       
-      if (!key.ipWhitelist.includes(clientIp)) {
-        logger.warn({ keyId: key.id, clientIp, whitelist: key.ipWhitelist }, 'IP not in whitelist');
+      if (!apiKey.ipWhitelist.includes(clientIp)) {
+        logger.warn({ 
+          keyId: apiKey.id, 
+          clientIp, 
+          whitelist: apiKey.ipWhitelist 
+        }, 'IP not in whitelist');
         return ResponseBuilder.forbidden(c, 'IP address not allowed');
       }
     }
 
     // Update last used timestamp (async, don't await)
     prisma.apiKey.update({
-      where: { id: key.id },
+      where: { id: apiKey.id },
       data: {
         lastUsedAt: new Date(),
         totalRequests: { increment: 1 },
       },
     }).catch((error: any) => {
-      logger.error({ error, keyId: key.id }, 'Failed to update API key usage');
+      logger.error({ error, keyId: apiKey.id }, 'Failed to update API key usage');
     });
 
     // Set account and key info in context
-    c.set('apiKey', key);
-    c.set('account', key.account);
-    c.set('accountId', key.accountId);
+    c.set('apiKey', apiKey);
+    c.set('account', apiKey.account);
+    c.set('accountId', apiKey.accountId);
 
     await next();
   } catch (error) {
-    logger.error({ error, path: c.req.path }, 'API key authentication error');
-    return ResponseBuilder.serverError(c, 'Authentication error');
-  }
-});
-
-// JWT authentication middleware (for user sessions)
-export const jwtAuth = createMiddleware(async (c: Context, next: Next) => {
-  const token = c.req.header('Authorization')?.replace('Bearer ', '');
-
-  if (!token) {
-    return ResponseBuilder.unauthorized(c, 'Access token is required');
-  }
-
-  try {
-    const payload = await verify(token, env.JWT_SECRET);
-
-    if (!payload || !payload.userId) {
-      return ResponseBuilder.unauthorized(c, 'Invalid token');
-    }
-
-    // Check if session is valid
-    const session = await prisma.session.findUnique({
-      where: { token },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
-      },
-    });
-
-    if (!session || !session.isActive) {
-      return ResponseBuilder.unauthorized(c, 'Invalid or expired session');
-    }
-
-    if (new Date(session.expiresAt) < new Date()) {
-      return ResponseBuilder.unauthorized(c, 'Session has expired');
-    }
-
-    // Update last active timestamp
-    prisma.session.update({
-      where: { id: session.id },
-      data: { lastActiveAt: new Date() },
-    }).catch((error: any) => {
-      logger.error({ error, sessionId: session.id }, 'Failed to update session');
-    });
-
-    c.set('user', session.user);
-    c.set('userId', session.userId);
-    c.set('session', session);
-
-    await next();
-  } catch (error) {
-    logger.error({ error }, 'JWT authentication error');
+    logger.error({ 
+      error, 
+      path: c.req.path,
+      token: token.substring(0, 20) 
+    }, 'Token authentication error');
     return ResponseBuilder.unauthorized(c, 'Invalid or expired token');
   }
 });
 
-// Optional authentication - continues if no auth provided
-export const optionalAuth = createMiddleware(async (c: Context, next: Next) => {
-  const apiKey = c.req.header('X-API-Key');
-  const bearerToken = c.req.header('Authorization');
+// Token generation endpoint handler
+export const generateToken = async (key: string, secret: string): Promise<{
+  token: string;
+  expiresAt: Date;
+  tokenType: string;
+}> => {
+  // Find the API key
+  const apiKey = await prisma.apiKey.findUnique({
+    where: { key },
+    include: { account: true },
+  });
 
-  if (!apiKey && !bearerToken) {
-    await next();
-    return;
+  if (!apiKey || !apiKey.isActive) {
+    throw new Error('Invalid API key');
   }
 
-  if (apiKey) {
-    return apiKeyAuth(c, next);
+  // Verify secret (in production, use proper hashing)
+  if (secret !== apiKey.secretHash) {
+    throw new Error('Invalid secret');
   }
 
-  if (bearerToken) {
-    return jwtAuth(c, next);
+  // Create token: base64(key:secret)
+  const token = Buffer.from(`${key}:${secret}`).toString('base64');
+  
+  // Calculate expiration
+  const expiresAt = apiKey.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days default
+
+  return {
+    token,
+    expiresAt,
+    tokenType: 'Bearer',
+  };
+};
+
+// Token validation endpoint handler
+export const validateToken = async (token: string): Promise<{
+  valid: boolean;
+  accountId?: string;
+  message?: string;
+}> => {
+  try {
+    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    const [key, secret] = decoded.split(':');
+
+    const apiKey = await prisma.apiKey.findUnique({
+      where: { key },
+      include: { account: true },
+    });
+
+    if (!apiKey || !apiKey.isActive) {
+      return { valid: false, message: 'Token is invalid or inactive' };
+    }
+
+    if (secret !== apiKey.secretHash) {
+      return { valid: false, message: 'Invalid token' };
+    }
+
+    if (apiKey.expiresAt && new Date(apiKey.expiresAt) < new Date()) {
+      return { valid: false, message: 'Token has expired' };
+    }
+
+    if (apiKey.account.status !== 'ACTIVE') {
+      return { valid: false, message: 'Account is not active' };
+    }
+
+    return { 
+      valid: true, 
+      accountId: apiKey.accountId,
+      message: 'Token is active' 
+    };
+  } catch (error) {
+    return { valid: false, message: 'Invalid token format' };
   }
+};
 
-  await next();
-});
-
-// Check permissions middleware
-export const requirePermissions = (...permissions: string[]) => {
+// Scoped token middleware (for future implementation)
+export const requireScope = (...scopes: string[]) => {
   return createMiddleware(async (c: Context, next: Next) => {
     const apiKey = c.get('apiKey');
     
@@ -186,41 +213,27 @@ export const requirePermissions = (...permissions: string[]) => {
       return ResponseBuilder.unauthorized(c, 'Authentication required');
     }
 
-    const hasPermission = permissions.every(permission => 
-      apiKey.permissions.includes(permission)
-    );
-
-    if (!hasPermission) {
-      logger.warn({ 
-        keyId: apiKey.id, 
-        required: permissions, 
-        has: apiKey.permissions 
-      }, 'Insufficient permissions');
-      return ResponseBuilder.forbidden(c, 'Insufficient permissions');
-    }
+    // TODO: Implement scope checking when scopes are added to API keys
+    // For now, all tokens have full access
+    logger.debug({ 
+      keyId: apiKey.id, 
+      requiredScopes: scopes 
+    }, 'Scope check (not yet implemented)');
 
     await next();
   });
 };
 
-// Check account type middleware
-export const requireAccountType = (...types: string[]) => {
-  return createMiddleware(async (c: Context, next: Next) => {
-    const account = c.get('account');
-    
-    if (!account) {
-      return ResponseBuilder.unauthorized(c, 'Authentication required');
-    }
-
-    if (!types.includes(account.type)) {
-      logger.warn({ 
-        accountId: account.id, 
-        accountType: account.type, 
-        required: types 
-      }, 'Account type not allowed');
-      return ResponseBuilder.forbidden(c, `This feature requires ${types.join(' or ')} account`);
-    }
-
-    await next();
-  });
+// Token revocation handler
+export const revokeToken = async (keyId: string): Promise<boolean> => {
+  try {
+    await prisma.apiKey.update({
+      where: { id: keyId },
+      data: { isActive: false },
+    });
+    return true;
+  } catch (error) {
+    logger.error({ error, keyId }, 'Failed to revoke token');
+    return false;
+  }
 };

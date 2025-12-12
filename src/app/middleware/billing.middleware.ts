@@ -241,8 +241,8 @@ async function triggerDepletedBalanceWebhook(accountId: string): Promise<void> {
   }
 }
 
-// Check daily/monthly limits
-export const checkLimits = (serviceType: 'sms' | 'email' | 'voice') => {
+// Check daily/monthly limits for all service types
+export const checkLimits = (serviceType: 'sms' | 'email' | 'voice' | 'whatsapp' | 'push' | 'lookup' | 'chat') => {
   return createMiddleware(async (c: Context, next: Next) => {
     const account = c.get('account');
 
@@ -260,7 +260,7 @@ export const checkLimits = (serviceType: 'sms' | 'email' | 'voice') => {
         return;
       }
 
-      // Check daily SMS limit
+      // Check daily limits for SMS
       if (serviceType === 'sms' && limits.dailySmsLimit) {
         if (limits.dailySmsSent >= limits.dailySmsLimit) {
           logger.warn({
@@ -296,7 +296,7 @@ export const checkLimits = (serviceType: 'sms' | 'email' | 'voice') => {
         }
       }
 
-      // Check daily spend limit
+      // Check daily spend limit (applies to all services)
       if (limits.dailySpendLimit && limits.dailySpent >= limits.dailySpendLimit) {
         return ResponseBuilder.error(
           c,
@@ -306,7 +306,7 @@ export const checkLimits = (serviceType: 'sms' | 'email' | 'voice') => {
         );
       }
 
-      // Check monthly spend limit
+      // Check monthly spend limit (applies to all services)
       if (limits.monthlySpendLimit && limits.monthlySpent >= limits.monthlySpendLimit) {
         return ResponseBuilder.error(
           c,

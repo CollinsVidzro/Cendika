@@ -23,10 +23,12 @@ export {
   commonSchemas,
   validatePhoneNumber,
   validateEmail,
+  validateEmails,
   validateAmount,
   validateSenderId,
-  sanitizeInput,
+  sanitizeEmailContent,
   validateBulkRequest,
+  validateAttachment,
 } from './validation.middleware';
 
 // Billing middleware

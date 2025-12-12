@@ -45,6 +45,8 @@ const envSchema = z.object({
   // SMS Providers
   TELECEL_API_KEY: z.string().optional(),
   TELECEL_API_SECRET: z.string().optional(),
+  KAIROS_API_KEY: z.string().optional(),
+  KAIROS_API_SECRET: z.string().optional(),
   MTN_API_KEY: z.string().optional(),
   MTN_API_SECRET: z.string().optional(),
   VODACOM_API_KEY: z.string().optional(),

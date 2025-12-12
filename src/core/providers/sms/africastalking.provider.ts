@@ -9,18 +9,18 @@ import type {
 import { logger } from '@utils/logger';
 
 /**
- * MTN SMS Provider
- * Direct integration with MTN networks across Africa
+ * Africa's Talking SMS Provider
+ * Pan-African SMS provider supporting 30+ countries
  * 
  * Supported Countries:
- * - Ghana, Nigeria, South Africa, Uganda, Rwanda, Cameroon, Benin, etc.
+ * - Kenya, Uganda, Tanzania, Rwanda, Nigeria, Ghana, South Africa, etc.
  * 
- * @see https://developer.mtn.com
+ * @see https://africastalking.com
  */
-export class MTNProvider extends BaseSMSProvider {
+export class AfricasTalkingProvider extends BaseSMSProvider {
   constructor(config: SMSProviderConfig) {
     super(config);
-    logger.info('MTN provider initialized (placeholder)');
+    logger.info('Africa\'s Talking provider initialized (placeholder)');
   }
 
   async sendSMS(options: SendSMSOptions): Promise<ProviderResponse> {
@@ -32,20 +32,25 @@ export class MTNProvider extends BaseSMSProvider {
       logger.info({
         recipient: this.maskPhone(recipient),
         senderId,
-        provider: 'MTN',
-      }, 'Sending SMS via MTN (placeholder)');
+        provider: 'AfricasTalking',
+      }, 'Sending SMS via Africa\'s Talking (placeholder)');
 
-      // TODO: Implement MTN API integration
-      // This would require MTN API credentials and endpoint setup
-      // Different countries may have different MTN API endpoints
+      // TODO: Implement Africa's Talking API integration
+      // const AT = require('africastalking')({
+      //   apiKey: credentials.apiKey,
+      //   username: credentials.username
+      // });
+      // const sms = AT.SMS;
+      // const result = await sms.send({ to: [recipient], message, from: senderId });
 
       const latency = Date.now() - startTime;
       this.updateStats(true, latency);
 
+      // Placeholder response
       return {
         success: true,
         status: 'submitted',
-        externalId: `mtn_${messageId || Date.now()}`,
+        externalId: `at_${messageId || Date.now()}`,
         message: 'Message submitted successfully (placeholder)',
         providerId: this.getProviderId(),
       };
@@ -54,7 +59,7 @@ export class MTNProvider extends BaseSMSProvider {
       const latency = Date.now() - startTime;
       this.updateStats(false, latency);
 
-      logger.error({ error, provider: 'MTN' }, 'SMS send error');
+      logger.error({ error, provider: 'AfricasTalking' }, 'SMS send error');
 
       return {
         success: false,
@@ -69,6 +74,7 @@ export class MTNProvider extends BaseSMSProvider {
   async getDeliveryStatus(externalId: string): Promise<DeliveryStatus> {
     logger.debug({ externalId }, 'Getting delivery status (placeholder)');
 
+    // TODO: Implement delivery status check
     return {
       status: 'sent',
       timestamp: new Date(),
@@ -79,9 +85,10 @@ export class MTNProvider extends BaseSMSProvider {
   async checkBalance(): Promise<ProviderBalance> {
     logger.debug('Checking balance (placeholder)');
 
+    // TODO: Implement balance check
     return {
       balance: 100.00,
-      currency: 'GHS',
+      currency: 'USD',
     };
   }
 
@@ -91,4 +98,4 @@ export class MTNProvider extends BaseSMSProvider {
   }
 }
 
-export default MTNProvider;
+export default AfricasTalkingProvider;

@@ -9,18 +9,21 @@ import type {
 import { logger } from '@utils/logger';
 
 /**
- * MTN SMS Provider
- * Direct integration with MTN networks across Africa
+ * Twilio SMS Provider
+ * Global SMS provider with coverage in 180+ countries including all of Africa
  * 
- * Supported Countries:
- * - Ghana, Nigeria, South Africa, Uganda, Rwanda, Cameroon, Benin, etc.
+ * Features:
+ * - Global coverage
+ * - Reliable delivery
+ * - Detailed analytics
+ * - Fallback provider
  * 
- * @see https://developer.mtn.com
+ * @see https://www.twilio.com
  */
-export class MTNProvider extends BaseSMSProvider {
+export class TwilioProvider extends BaseSMSProvider {
   constructor(config: SMSProviderConfig) {
     super(config);
-    logger.info('MTN provider initialized (placeholder)');
+    logger.info('Twilio provider initialized (placeholder)');
   }
 
   async sendSMS(options: SendSMSOptions): Promise<ProviderResponse> {
@@ -32,12 +35,17 @@ export class MTNProvider extends BaseSMSProvider {
       logger.info({
         recipient: this.maskPhone(recipient),
         senderId,
-        provider: 'MTN',
-      }, 'Sending SMS via MTN (placeholder)');
+        provider: 'Twilio',
+      }, 'Sending SMS via Twilio (placeholder)');
 
-      // TODO: Implement MTN API integration
-      // This would require MTN API credentials and endpoint setup
-      // Different countries may have different MTN API endpoints
+      // TODO: Implement Twilio API integration
+      // const twilio = require('twilio');
+      // const client = twilio(accountSid, authToken);
+      // const result = await client.messages.create({
+      //   body: message,
+      //   from: senderId,
+      //   to: recipient
+      // });
 
       const latency = Date.now() - startTime;
       this.updateStats(true, latency);
@@ -45,7 +53,7 @@ export class MTNProvider extends BaseSMSProvider {
       return {
         success: true,
         status: 'submitted',
-        externalId: `mtn_${messageId || Date.now()}`,
+        externalId: `tw_${messageId || Date.now()}`,
         message: 'Message submitted successfully (placeholder)',
         providerId: this.getProviderId(),
       };
@@ -54,7 +62,7 @@ export class MTNProvider extends BaseSMSProvider {
       const latency = Date.now() - startTime;
       this.updateStats(false, latency);
 
-      logger.error({ error, provider: 'MTN' }, 'SMS send error');
+      logger.error({ error, provider: 'Twilio' }, 'SMS send error');
 
       return {
         success: false,
@@ -81,7 +89,7 @@ export class MTNProvider extends BaseSMSProvider {
 
     return {
       balance: 100.00,
-      currency: 'GHS',
+      currency: 'USD',
     };
   }
 
@@ -91,4 +99,4 @@ export class MTNProvider extends BaseSMSProvider {
   }
 }
 
-export default MTNProvider;
+export default TwilioProvider;
