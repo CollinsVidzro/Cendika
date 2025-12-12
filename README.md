@@ -1,6 +1,7 @@
+
 # Cendika Communication Platform
 
-[![Powered by Sendexa](https://img.shields.io/badge/Powered%20By-Sendexa-blue?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDIyQzE3LjUyMiA22MCAyMiAxNy41MjIyIDIyIDEyQzIyIDYuNDc3MTUgMTcuNTIyMiAyIDEyIDJDNi40NzcxNSAyIDIgNi40Nzc15IDIgMTJDMiAxNy41MjIyIDYuNDc3MTUgMjIgMTIgMjJaIiBmaWxsPSIjMDA2NkZGIi8+CjxwYXRoIGQ9Ik0xMi41IDExLjVDMTIuNSAxMi4wNTIyNyAxMi4wNTIyNyAxMi41IDExLjUgMTIuNUMxMC45NDc3MyAxMi41IDEwLjUgMTIuMDUyMjcgMTAuNSAxMS41QzEwLjUgMTAuOTQ3NzMgMTAuOTQ3NzMgMTAuNSAxMS41IDEwLjVDMTIuMDUyMjcgMTAuNSAxMi41IDEwLjk0NzczIDEyLjUgMTEuNVoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xNi41IDExLjVDMTYuNSAxMi4wNTIyNyAxNi4wNTIyNyAxMi41IDE1LjUgMTIuNUwxMS41IDEyLjVDMTAuOTQ3NzMgMTIuNSAxMC41IDEyLjA1MjI3IDEwLjUgMTEuNUwxMC41IDcuNUMxMC41IDYuOTQ3NzI3IDEwLjk0NzczIDYuNSAxMS41IDYuNUwxNS41IDYuNUMxNi4wNTIyNyA2LjUgMTYuNSA2Ljk0NzcyNyAxNi41IDcuNUwxNi41IDExLjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K)](https://sendexa.co)
+[![Powered by Sendexa](https://img.shields.io/badge/Powered%20By-Sendexa-blue?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDIyQzE3LjUyMiAyMiAyMiAxNy41MjIyIDIyIDEyQzIyIDYuNDc3MTUgMTcuNTIyMiAyIDEyIDJDNi40Nzc3MiAyIDIgNi40Nzc5NSAyIDEyQzIgMTcuNTIyMiA2LjQ3NzcyIDIyIDEyIDIyWiIgZmlsbD0iIzAwNjZGRiIvPgo8cGF0aCBkPSJNMTIuNSAxMS41QzEyLjUgMTIuMDUyMjcgMTIuMDUyMjcgMTIuNSAxMS41IDEyLjVDMTAuOTQ3NzMgMTIuNSAxMC41IDEyLjA1MjI3IDEwLjUgMTEuNUMxMC41IDEwLjk0NzczIDEwLjk0NzczIDEwLjUgMTEuNSAxMC41QzEyLjA1MjI3IDEwLjUgMTIuNSAxMC45NDc3MyAxMi41IDExLjVaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTYuNSAxMS41QzE2LjUgMTIuMDUyMjcgMTYuMDUyMjcgMTIuNSAxNS41IDEyLjVMMTEuNSAxMi41QzEwLjk0NzczIDEyLjUgMTAuNSAxMi4wNTIyNyAxMC41IDExLjVMMTAuNSA3LjVDMTAuNSA2Ljk0NzcyNyAxMC45NDc3MyA2LjUgMTEuNSA2LjVMMTUuNSA2LjVDMTYuMDUyMjcgNi41IDE2LjUgNi45NDc3MjcgMTYuNSA3LjVMMTYuNSAxMS41WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==)](https://sendexa.co)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Bun](https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white)](https://bun.sh/)
@@ -10,17 +11,11 @@
 [![GitHub forks](https://img.shields.io/github/forks/CollinsVidzro/cendika?style=for-the-badge&logo=github)](https://github.com/CollinsVidzro/cendika/network/members)
 [![GitHub issues](https://img.shields.io/github/issues/CollinsVidzro/cendika?style=for-the-badge&logo=github)](https://github.com/CollinsVidzro/cendika/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/CollinsVidzro/cendika?style=for-the-badge&logo=github)](https://github.com/CollinsVidzro/cendika/pulls)
-[![Discord](https://img.shields.io/discord/your-server-id?style=for-the-badge&logo=discord)](https://discord.gg/your-invite)
-[![Twitter Follow](https://img.shields.io/twitter/follow/cendika_api?style=for-the-badge&logo=twitter)](https://twitter.com/cendika_api)
 
 ## 🚀 Africa-First Communication API Platform
 
 Cendika is an **open-source, production-ready communication API platform** built following [Sendexa](https://sendexa.co) documentation and standards. Designed with Africa in mind, it provides unified APIs for SMS, Voice, Email, WhatsApp, Push Notifications, and Phone Lookup services with African-specific optimizations.
 
-
-## **Sponsor/Donor Appeal:**
-
-```markdown
 ## 💝 Support Cendika
 
 Cendika is open source and free forever. Your support helps:
@@ -43,7 +38,6 @@ Cendika is open source and free forever. Your support helps:
 - Resource contributions (servers, SMS credits)
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-Cendika-blue?style=for-the-badge&logo=github)](https://github.com/sponsors/CollinsVidzro)
-
 
 ### ✨ Features
 
@@ -252,7 +246,6 @@ Country-specific pricing in local currencies (GHS, NGN, KES, ZAR, etc.) with vol
 - Vodacom
 - Orange
 
-
 ### Payment Gateways
 - Paystack (Nigeria, Ghana, Kenya, South Africa)
 - Flutterwave (across Africa)
@@ -403,5 +396,7 @@ See our [ROADMAP.md](ROADMAP.md) for upcoming features and improvements.
 
 **Built with ❤️ for Africa by the open-source community**
 
-[![Star on GitHub](https://img.shields.io/github/stars/CollinsVidzro/cendika.svg?style=social)](https://github.com/CollinsVidzro/cendika)
-[![Twitter Follow](https://img.shields.io/twitter/follow/cendika_api.svg?style=social)](https://twitter.com/cendika_api)
+[![Star on GitHub](https://img.shields.io/github/stars/CollinsVidzro/cendika.svg?style=social)](https://github.com/CollinsVidzro/cendika/stargazers)
+[![Twitter Follow](https://img.shields.io/twitter/follow/cendika_api.svg?style=social&label=Follow)](https://twitter.com/cendika_api)
+
+---
